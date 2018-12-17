@@ -1,0 +1,7 @@
+<h3>{{ svcItem| svcItemDisplayName }}</h3>
+<li *ngFor="let item of itemAttributes | userVisibleAttributeFilter" >
+{{ item.attributeDef.attributeDef.displayName | splTranslate }}
+
+<formio [form]="svcItemForm"></formio>
+
+</li>

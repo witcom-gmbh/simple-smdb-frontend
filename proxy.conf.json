@@ -1,0 +1,11 @@
+{
+  "/serviceplanet/*": {
+    "target": "https://smdb-dev.workspace.witcom.de/serviceplanet",
+    "secure": false,
+    "pathRewrite": {
+      "^/serviceplanet": ""
+    },
+    "changeOrigin": true,
+    "logLevel": "debug"
+  }
+}
