@@ -4,7 +4,11 @@ import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { MessageService } from './message.service';
 import { ErrorHandlerService } from './error-handler.service';
 import { ApiInterceptor } from './api.interceptor';
-import {ServiceItemService} from './service-item.service';
+import { ServiceItemService } from './service-item.service';
+import { FormBuilderService } from './form-builder.service';
+import { MockApiSearchService } from './mock-api-search.service'
+import { SmdbPartnerService } from './smdb-partner.service'
+import {NominatimService} from './Nominatim/nominatim.service';
 
 export const API_INTERCEPTOR_PROVIDER: Provider = {
   provide: HTTP_INTERCEPTORS,
@@ -19,7 +23,11 @@ export const API_INTERCEPTOR_PROVIDER: Provider = {
     ServiceItemService,
     ErrorHandlerService,
     ApiInterceptor,
-    API_INTERCEPTOR_PROVIDER
+    FormBuilderService,
+    API_INTERCEPTOR_PROVIDER,
+    MockApiSearchService,
+    SmdbPartnerService,
+    NominatimService
   ],
   imports: [
     CommonModule

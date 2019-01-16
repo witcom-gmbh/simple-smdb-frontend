@@ -1,0 +1,17 @@
+<div *ngIf="serviceItem">
+<h3>{{ serviceItem| svcItemDisplayName }}</h3>
+<div *ngIf="formGroup">
+<form [formGroup]="formGroup">
+
+    <dynamic-material-form [group]="formGroup" [model]="formModel" (blur)="onBlur($event)"
+                                   (change)="onChange($event)"
+                                   (focus)="onFocus($event)"
+(matEvent)="onMatEvent($event)">
+</dynamic-material-form>
+                            
+</form>
+</div>
+<!--
+<service-item-contacts [itemId]="itemId" [requiredContactRoles]="requiredContactRoles"></service-item-contacts>
+-->
+</div>

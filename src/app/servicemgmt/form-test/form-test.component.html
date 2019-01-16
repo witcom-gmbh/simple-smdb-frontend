@@ -1,0 +1,14 @@
+<!--
+<service-item-contacts [itemId]="itemId" [requiredContactRoles]="requiredContactRoles"></service-item-contacts>
+-->
+<!--
+<dsl-abfrage [formControl]="formControl" [selectableBSAProducts]="selectableBsaProducts"></dsl-abfrage>
+-->
+
+<form [formGroup]="formGroup">
+
+    <dynamic-material-form [group]="formGroup" [model]="formModel"></dynamic-material-form>
+                             
+</form>
+
+<pre>{{formGroup.value | json}}</pre>

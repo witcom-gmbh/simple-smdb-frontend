@@ -12,10 +12,15 @@ Service-Asset&nbsp;{{item.serviceAsset.roleDisplayName}}
      
     </div>
     <div class="col-6">
+    <!--
       <div *ngIf="selectedSvcItem">
       <app-svcitem-config [svcItem]="selectedSvcItem"></app-svcitem-config>
-      
       </div>
+    -->
+    <div *ngIf="svcItemId">
+      <service-item-editor [itemId]="svcItemId"></service-item-editor>
+      </div>
+      
     </div>
   </div>
 </div>

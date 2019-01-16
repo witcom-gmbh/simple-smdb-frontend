@@ -1,1 +1,46 @@
 /* You can add global styles to this file, and also import other style files */
+@import "~@angular/material/prebuilt-themes/indigo-pink.css";
+
+/* MATERIAL */
+mat-input {
+    vertical-align: middle;
+}
+
+mat-input, mat-radio-button {
+    margin-right: 1rem;
+}
+
+mat-select {
+    width: 200px;
+}
+
+mat-slide-toggle {
+    display: inline-block !important;
+}
+
+.mat-form-field{
+    display: inline !important;
+}
+
+mat-form-field.mat-form-field-type-mat-chip-list {
+    width: 100%;
+}
+
+dynamic-material-form-control {
+    display: block;
+    margin-bottom: 1rem;
+}
+
+dynamic-material-form-control div[role="group"] > dynamic-material-form-control {
+    display: inline-block;
+    margin-bottom: 0;
+    margin-right: 1rem;
+}
+
+dynamic-material-form-control dynamic-material-form-group + mat-error {
+    font-size: 75%;
+}
+
+dynamic-material-form-control .mat-list-item {
+    justify-content: center;
+}

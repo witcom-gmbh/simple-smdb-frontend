@@ -1,0 +1,17 @@
+<div>
+<div class="row">
+  <div class="col-2">
+  Benötigte Rollen
+  </div>
+    <div class="col-10">
+    <mat-chip-list >
+        <mat-chip color="{{chip.color}}" selected *ngFor="let chip of requiredContactTypeChips">{{chip.displayName |splTranslate}}</mat-chip>
+    </mat-chip-list>
+
+
+  </div>
+
+</div>  
+
+
+</div>

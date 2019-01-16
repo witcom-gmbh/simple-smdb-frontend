@@ -1,0 +1,7 @@
+//Form-Builder
+export const ATTRIBUTE_RENDERER='rendererProductProperty';
+export const ATTRIBUTE_RENDERER_CONTACT='CONTACT';
+export const ATTRIBUTE_RENDERER_COMPANY='COMPANY'
+export const ATTRIBUTE_RENDERER_TEXTAREA='TEXTAREA';
+export const ATTRIBUTE_RENDERER_BSAPRODUCT='BSAPRODUCT';
+export const ATTRIBUTE_PROPERTY_ISCONFIGSTORE='attributeIsConfigStore';

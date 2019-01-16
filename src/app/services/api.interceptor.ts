@@ -26,6 +26,11 @@ export class ApiInterceptor implements HttpInterceptor {
       // This is not a request to the API! proceed as is
       return next.handle(req);
     }
+
+    //Fix broken API-Gen if Body is empty    
+    if ((req.method==="POST") &&(req.body===null)){
+       req = req.clone({setHeaders: {'Content-Type': 'application/json'}});
+    }
     const ignoreError = this.nextRequestState.ignoreNextError;
     // ... but immediately clear the flag, as it is only for the next request (which is this one)
     this.nextRequestState.ignoreNextError = false;

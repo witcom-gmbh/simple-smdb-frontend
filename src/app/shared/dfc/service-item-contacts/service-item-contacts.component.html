@@ -1,0 +1,75 @@
+<h3>Ansprechpartner</h3>
+
+  <div class="container">
+<div class="table-responsive">
+  <table class="table">
+    <thead>
+      <tr>
+        <th scope="col">Name</th>
+        <th scope="col">Vorname</th>
+        <th scope="col">Firma</th>
+        <th scope="col">Rolle</th>
+        <th scope="col">Aktion</th>
+        
+      </tr>
+    </thead>
+    
+    <tbody *ngFor="let contactRelation of itemContactRelations">
+      <tr>
+        <td>{{ contactRelation.contact.lastname }}</td> 
+        <td>{{ contactRelation.contact.firstname }}</td>
+        <td>{{ contactRelation.contact.representingPartner.name }}</td> 
+        <td><div *ngFor="let contactType of contactRelation.contactTypes; let lastItem = last;">{{ contactType.displayName.defaultText }}<span *ngIf="!lastItem">, </span></div></td>
+        <td>
+        <button type="button" class="btn btn-danger"  (click)="removeContactFromServiceItem(contactRelation.contact.id)">Entfernen</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+ </div> 
+  <div class="container">
+  <required-contact-roles [selectedContactRelations]="itemContactRelations" [requiredContactTypes]="requiredContactTypes"></required-contact-roles>
+  <div class="row">
+  <div class="col-6">
+  <mat-form-field class="example-full-width">
+    <input type="text" placeholder="Firma suchen" aria-label="Number" matInput [formControl]="partnerControl" [matAutocomplete]="autoPartner">
+    <mat-autocomplete #autoPartner="matAutocomplete" [displayWith]="displayPartnerFn" (optionSelected)="onPartnerSelectionChanged($event)"> 
+      <mat-option *ngFor="let partner of filteredPartners | async" [value]="partner">
+        {{partner.name}} 
+      </mat-option>
+    </mat-autocomplete>
+  </mat-form-field>
+  </div>
+
+  <div class="col-6">
+  <mat-form-field class="example-full-width">
+    <input type="text"  placeholder="Kontakt wählen" aria-label="Number" matInput [formControl]="contactControl" [matAutocomplete]="autoContact">
+    <mat-autocomplete #autoContact="matAutocomplete" [displayWith]="displayContactFn"> 
+      <mat-option *ngFor="let contact of partnerContacts | async" [value]="contact">
+        {{contact.firstname}} {{contact.lastname}} 
+      </mat-option>
+    </mat-autocomplete>
+  </mat-form-field>
+  </div>
+  </div>
+  <div class="row">  
+     <div class="col-9">
+    <mat-form-field class="example-full-width">
+  
+  <mat-select placeholder="Rollen zuweisen" [formControl]="newRoleControl" multiple>
+    <mat-option *ngFor="let role of roles" [value]="role">{{role.displayName.defaultText}}</mat-option>
+  </mat-select>
+  
+   
+  </mat-form-field>
+  </div>
+  <div class="col-2">
+  <button [disabled]="addContactDisabled()" type="button" class="btn btn-primary"  (click)="addContactToServiceItem()">Hinzufügen</button>
+  </div>
+  
+  </div>
+</div>
+
+bla {{ itemId  }} 
+

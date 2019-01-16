@@ -1,6 +1,7 @@
 import { Component, OnInit,Input, OnChanges, SimpleChange } from '@angular/core';
 import { ServiceItemDto,AttributeDto } from '../../api/models';
 import {ServiceItemService} from '../../services/service-item.service';
+import { FormBuilderService } from '../../services/form-builder.service';
 
 @Component({
   selector: 'app-svcitem-config',
@@ -12,10 +13,15 @@ export class SvcitemConfigComponent implements OnInit,OnChanges {
   @Input() svcItem:ServiceItemDto;
   private itemAttributes:Array<AttributeDto>;
   private svcItemForm={};
+  private attributeSubmission={'data':{}};
+  private formBuilderService:FormBuilderService
   
   constructor(
-    private svcItemService:ServiceItemService
-  ) { }
+    private svcItemService:ServiceItemService,
+    //private formBuilderService:FormBuilderService
+  ) {
+     this.formBuilderService = new FormBuilderService();
+  }
 
   ngOnInit() {
       //console.log('in item',this.svcItem);
@@ -25,107 +31,61 @@ export class SvcitemConfigComponent implements OnInit,OnChanges {
       //getItemAttributes
     console.log('change in item',this.svcItem);
     this.getAttributes();
-    this.svcItemService.reloadBS(12);
-    this.getForm();
+    //this.svcItemService.reloadBS(12);
+    //this.getForm();
   } 
   
   getAttributes(){
       this.svcItemService.getItemAttributes(this.svcItem.id).subscribe(res => {
           this.itemAttributes = res;
           console.log(res);
+          
+          /*
+          this.formBuilderService.testObservable().subscribe(res => {
+            console.log("dummy observable",res);
+          },
+          err => {console.error('my error')});
+          */
+
+          
+          let formSpec = this.formBuilderService.buildServiceItemAttributeForm(this.itemAttributes);
+          this.svcItemForm=formSpec.formDefinition;
+          this.attributeSubmission=formSpec.submission;
         });
       
   }
   
-  getForm(){
-      //http://apis.witcom-dev.services/forms/testform
-      this.svcItemForm={
-    "title": "My Test Form",
-    "components": [
-        {
-            "type": "textfield",
-            "input": true,
-            "tableView": true,
-            "inputType": "text",
-            "inputMask": "",
-            "label": "First Name",
-            "key": "firstName",
-            "placeholder": "Enter your first name",
-            "prefix": "",
-            "suffix": "",
-            "multiple": false,
-            "defaultValue": "",
-            "protected": false,
-            "unique": false,
-            "persistent": true,
-            "validate": {
-                "required": true,
-                "minLength": 2,
-                "maxLength": 10,
-                "pattern": "",
-                "custom": "",
-                "customPrivate": false
-            },
-            "conditional": {
-                "show": "",
-                "when": null,
-                "eq": ""
-            }
-        },
-        {
-            "type": "textfield",
-            "input": true,
-            "tableView": true,
-            "inputType": "text",
-            "inputMask": "",
-            "label": "Last Name",
-            "key": "lastName",
-            "placeholder": "Enter your last name",
-            "prefix": "",
-            "suffix": "",
-            "multiple": false,
-            "defaultValue": "",
-            "protected": false,
-            "unique": false,
-            "persistent": true,
-            "validate": {
-                "required": true,
-                "minLength": 2,
-                "maxLength": 10,
-                "pattern": "",
-                "custom": "",
-                "customPrivate": false
-            },
-            "conditional": {
-                "show": "",
-                "when": null,
-                "eq": ""
-            }
-        },
-        {
-            "input": true,
-            "label": "Abschicken",
-            "tableView": false,
-            "key": "submit",
-            "size": "md",
-            "leftIcon": "",
-            "rightIcon": "",
-            "block": false,
-            "action": "submit",
-            "disableOnInvalid": true,
-            "theme": "primary",
-            "type": "button"
-        }
-    ]
-};
+  updateSvcItem(submission:any):void{
+      console.log(submission.data); 
+      this.svcItemService.modifyServiceItem(this.svcItem.id,
+      this.formBuilderService.buildModifiedAttributesFromFormData(this.itemAttributes,submission.data)).subscribe(res => {
+          console.log("Update ok");
+          }, err => {console.error(err);}
+      );
       
   }
   
+  onSvcItemUpdateFormEvent(submission: any) {
+    if (submission.type!==null && submission.type!==undefined){
+      switch(submission.type) {
+        case "testEvent":
+            //this.onTest(submission);
+            break;
+        case "updateSvcItem": 
+            this.updateSvcItem(submission);
+            break;
+        default:
+            console.log('Unknown event ', submission);
+      }
+    }
+  }
+
+  /*
   getItemFriendlyName():string{
      if (this.svcItem.roleDisplayName !== null){
          return this.svcItem.roleDisplayName;
      } 
      return this.svcItem.displayName;
-  }
+  }*/
 
 }

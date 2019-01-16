@@ -1,0 +1,145 @@
+<div class="container">
+<h3>DSL-Abfrage</h3>
+<div class="row">
+<div class="col-8">
+<mat-slide-toggle [labelPosition]="before" [(ngModel)]="rechercheAdvanced" >Profi-Suche</mat-slide-toggle>
+</div>
+</div>
+<div class="row" [hidden]="rechercheAdvanced"> 
+  <div class="col-10">
+  <mat-form-field class="example-full-width">
+    <input type="text" placeholder="Adresse suchen" aria-label="Number" matInput [formControl]="adressSearchControl" [matAutocomplete]="autoAddress">
+
+    <mat-autocomplete #autoAddress="matAutocomplete" [displayWith]="displayAddressFn" (optionSelected)="onAddressSelectionChanged($event)"> 
+      <mat-option *ngFor="let address of filteredAddresses | async" [value]="address">
+        <span *ngIf="address">{{address.displayName}}</span>
+      </mat-option>
+    </mat-autocomplete>
+  </mat-form-field>
+  </div>
+
+  <div class="col-2">
+  <button [disabled]="!rechercheAddressValid()||rechercheRunning" type="button" class="btn btn-primary" (click)="lookupDSLProdukt()">DSL-Recherche starten</button>
+  </div>
+</div>
+<div [hidden]="!rechercheAdvanced" class="row">
+<div class="col-2">
+<mat-form-field>
+    <input matInput placeholder="Weidenbornstrasse" [formControl]="strasseFormControl"
+           [errorStateMatcher]="matcher" required>
+    <mat-hint align="start">Strasse</mat-hint>
+    <mat-error *ngIf="strasseFormControl.hasError('required')">
+      Strasse ist <strong>erforderlich</strong>
+    </mat-error>
+  </mat-form-field>
+</div>
+<div class="col-2">
+<mat-form-field>
+    <input matInput placeholder="1" [formControl]="hausnummerFormControl"
+           [errorStateMatcher]="matcher" required>
+    <mat-hint align="start">Hausnummer</mat-hint>
+    <mat-error *ngIf="hausnummerFormControl.hasError('pattern') && !hausnummerFormControl.hasError('required')">
+      Nur Zahlen erlaubt
+    </mat-error>
+    <mat-error *ngIf="hausnummerFormControl.hasError('required')">
+      Hausnummer ist <strong>erforderlich</strong>
+    </mat-error> 
+  </mat-form-field>
+
+</div>
+<div class="col-2">
+<mat-form-field>
+    <input matInput placeholder="" [formControl]="hausnummerzusatzFormControl"
+           [errorStateMatcher]="matcher" >
+    <mat-hint align="start">Hausnummerzusatz</mat-hint>    
+  </mat-form-field>
+</div>
+<div class="col-1">
+<mat-form-field>
+    <input matInput placeholder="65189" [formControl]="plzFormControl"
+           [errorStateMatcher]="matcher" required>
+    <mat-hint align="start">PLZ</mat-hint>
+    <mat-error *ngIf="(plzFormControl.hasError('pattern') || plzFormControl.hasError('minlength')|| plzFormControl.hasError('maxlength')) && !plzFormControl.hasError('required')">
+      Falsches Format
+    </mat-error>
+    
+    <mat-error *ngIf="plzFormControl.hasError('required')">
+      PLZ ist <strong>erforderlich</strong>
+    </mat-error> 
+    
+  </mat-form-field>
+</div>
+
+<div class="col-2">
+<mat-form-field>
+    <input matInput placeholder="Wiesbaden" [formControl]="ortFormControl"
+           [errorStateMatcher]="matcher" required> 
+    <mat-hint align="start">Ort</mat-hint>
+    <mat-error *ngIf="ortFormControl.hasError('required')">
+      Ort ist <strong>erforderlich</strong>
+    </mat-error>     
+  </mat-form-field>
+</div>
+
+<div class="col-1">
+<mat-form-field>
+    <input matInput placeholder="" [formControl]="klsFormControl"
+           [errorStateMatcher]="matcher">
+    <mat-hint align="start">KLS-ID</mat-hint>
+    <mat-error *ngIf="(klsFormControl.hasError('pattern')) && !klsFormControl.hasError('required')">
+      Nur Zahlen erlaubt
+    </mat-error>
+    
+  </mat-form-field>
+</div>
+
+<div class="col-2">
+  <button [disabled]="!rechercheAddressValid()||rechercheRunning" type="button" class="btn btn-primary" (click)="lookupDSLProdukt()">DSL-Recherche starten</button>
+</div>
+
+</div>
+
+
+<div [hidden]="!rechercheRefined" class="row mt-4">
+
+<div class="col-12">
+    <mat-form-field class="example-full-width">
+  
+  <mat-select placeholder="Kein eindeutiges Ergebnis - bitte Adresse zur erneuten Suche wählen" (selectionChange)="onRechercheRefinedSelection($event)">
+    <mat-option *ngFor="let addr of rechercheRefinedAddressList" [value]="addr">{{addr.Strasse}} {{addr.Hausnummer}}{{addr.Hausnummernzusatz}},{{addr.Postleitzahl}} {{addr.Ort}}</mat-option>
+  </mat-select>
+  
+   
+  </mat-form-field>
+  </div>
+<!--
+<span>Die eingegebenen Adressdaten liefern kein eindeutiges Rechercheergebnis. Bitte eines der folgenden m&ouml;glichen Ergbnisse auswählen</span>
+-->
+</div>
+
+<div *ngIf="availableBSAProducts.length > 0" class="row mt-4"> 
+
+<div class="col-10">
+<mat-form-field class="example-full-width">
+  
+  <mat-select placeholder="Verfügbare BSA-Produkte" [(value)]="selectedBSAProduct">
+    <mat-option *ngFor="let product of availableBSAProducts" [value]="product">{{product.produktoptionName}}</mat-option>
+  </mat-select>
+  
+   
+  </mat-form-field>
+</div>
+<div class="col-2">
+  <button type="button" class="btn btn-primary" (click)="selectBSAProduct()">Produkt wählen</button>
+</div>
+</div>
+
+<div *ngIf="abfrageResult" class="row mt-4"> 
+<div class="col-10">
+Aktuell gewähltes BSA-Produkt : {{abfrageResult.produkt | json }}
+</div>
+</div>
+
+</div>
+
+

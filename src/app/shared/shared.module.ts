@@ -5,7 +5,11 @@ import { MessagesComponent } from './messages/messages.component';
 import {UserVisibleAttributeFilterPipe} from './filter-user-visible-attribute.pipe';
 import { SvcItemDisplayNamePipe } from './svc-item-display-name.pipe';
 import { SplTranslatePipe } from './spl-translate.pipe';
-//export {UserVisibleAttributeFilterPipe} from './filter-user-visible-attribute.pipe';
+export {UserVisibleAttributeFilterPipe} from './filter-user-visible-attribute.pipe';
+export { SplTranslatePipe } from './spl-translate.pipe';
+
+
+
 
 @NgModule({
   declarations: [MessagesComponent,
@@ -16,7 +20,6 @@ import { SplTranslatePipe } from './spl-translate.pipe';
   imports: [
     CommonModule,
     ReactiveFormsModule
-
   ],
   exports:[
     MessagesComponent,

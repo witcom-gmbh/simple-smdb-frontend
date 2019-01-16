@@ -5,7 +5,9 @@
   "includeTags": [
   "ServiceInstantiation_V2",  
   "ServiceRetrieval_V2",
-  "ServiceMgmt_V1"
+  "ServiceMgmt_V1",
+  "PartnerRetrieval_V1",
+  "PartnerMgmt_V1"
   ],
   "ignoreUnusedModels": true,
   "minParamsForContainer": 2,
