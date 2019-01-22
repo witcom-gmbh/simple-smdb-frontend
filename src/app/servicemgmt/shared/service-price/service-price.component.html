@@ -1,0 +1,8 @@
+<div *ngIf="prices"> 
+<p>
+  PREISINFO
+</p>
+<div *ngFor="let price of orderBy('accountingTypeName')"> 
+<span><strong>{{price.accountingType.displayName |splTranslate}}</strong>&nbsp;{{price.money.amount}} {{price.money.currency}}</span>
+</div>
+</div>

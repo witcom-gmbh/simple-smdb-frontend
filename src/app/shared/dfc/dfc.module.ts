@@ -1,6 +1,6 @@
 import { NgModule,Provider,Type } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule } from "@angular/forms";
+import { ReactiveFormsModule,NG_VALIDATORS } from "@angular/forms";
 import { FormsModule } from '@angular/forms';
 import {SharedModule} from '../shared.module';
 
@@ -58,6 +58,8 @@ import {
 } from "@ng-dynamic-forms/core";
 
 import { ServiceItemContactsComponent } from './service-item-contacts/service-item-contacts.component';
+import { serviceContactsValidator } from './service-item-contacts/service-contacts-validator';
+
 import { RequiredContactRolesComponent } from './required-contact-roles/required-contact-roles.component';
 import { DslAbfrageComponent } from "./dsl-abfrage/dsl-abfrage.component"
 import { DslRechercheService } from "./dsl-abfrage/dsl-recherche.service";
@@ -71,51 +73,12 @@ export const DFC_PROVIDER: Provider = {
   useValue: (model: DynamicFormControlModel): Type<DynamicFormControl> | null  => {
 
       switch (model.type) {
-        /*  
-          case DYNAMIC_FORM_CONTROL_TYPE_ARRAY:
-            return DynamicMaterialFormArrayComponent;
-
-        case DYNAMIC_FORM_CONTROL_TYPE_CHECKBOX:
-            return DynamicMaterialCheckboxComponent;
-
-        case DYNAMIC_FORM_CONTROL_TYPE_CHECKBOX_GROUP:
-            return DynamicMaterialFormGroupComponent;
-
-        case DYNAMIC_FORM_CONTROL_TYPE_DATEPICKER:
-            return DynamicMaterialDatePickerComponent;
-
-        case DYNAMIC_FORM_CONTROL_TYPE_GROUP:
-            return DynamicMaterialFormGroupComponent;
-
-        case DYNAMIC_FORM_CONTROL_TYPE_INPUT:
-            let inputModel = model as DynamicInputModel;
-
-            return inputModel.multiple ? DynamicMaterialChipsComponent : DynamicMaterialInputComponent;
-
-        case DYNAMIC_FORM_CONTROL_TYPE_RADIO_GROUP:
-            return DynamicMaterialRadioGroupComponent;
-
-        case DYNAMIC_FORM_CONTROL_TYPE_SELECT:
-            return DynamicMaterialSelectComponent;
-
-        case DYNAMIC_FORM_CONTROL_TYPE_SLIDER:
-            return DynamicMaterialSliderComponent;
-
-        case DYNAMIC_FORM_CONTROL_TYPE_SWITCH:
-            return DynamicMaterialSlideToggleComponent;
-
-        case DYNAMIC_FORM_CONTROL_TYPE_TEXTAREA:
-            return DynamicMaterialTextAreaComponent;
-*/
+        
         case DYNAMIC_FORM_CONTROL_TYPE_SVCITEMCONTACT:
           return ServiceItemContactDFCComponent;
           
         case DYNAMIC_FORM_CONTROL_TYPE_DSLABFRAGE:
             return DynamicDSLAbfrageComponent;
-  /*        
-        default:
-            return null;
-*/
         }
      }
 }
@@ -124,7 +87,9 @@ export const DFC_PROVIDER: Provider = {
     entryComponents: [ServiceItemContactDFCComponent,DynamicDSLAbfrageComponent],
     providers: [
         DFC_PROVIDER,
-        DslRechercheService
+        DslRechercheService,
+        {provide: NG_VALIDATORS, useValue: serviceContactsValidator, multi: true}
+
     ],
     declarations: [
         ServiceItemContactDFCComponent,
@@ -156,6 +121,7 @@ export const DFC_PROVIDER: Provider = {
         RequiredContactRolesComponent,
         ServiceItemContactDFCComponent,
         DslAbfrageComponent,
+        
         
     ]
 })

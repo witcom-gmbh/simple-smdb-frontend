@@ -1,6 +1,6 @@
 import { Component, OnInit,OnChanges ,Input,ViewChild , Output,forwardRef  } from '@angular/core';
-import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
-import {FormControl} from '@angular/forms';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR,NG_VALIDATORS } from '@angular/forms';
+import {FormControl,ValidationErrors,AbstractControl,ValidatorFn} from '@angular/forms';
 import {Observable,of} from 'rxjs';
 import {
   startWith,
@@ -62,17 +62,17 @@ export class ServiceItemContactsComponent implements ControlValueAccessor, OnIni
     }
     
     ngAfterViewInit(){
-        console.log("test",this.itemId); 
+
         
     }
     
     
     
     ngOnInit() {
-        console.log("got input item id" , this.itemId);
+        /*
         if(this.itemId !== undefined){
             this.getContactRelations();
-        }
+        }*/
         this.buildRequiredContactTypes();
         
         this.filteredPartners = this.partnerControl.valueChanges.pipe(
@@ -159,11 +159,16 @@ export class ServiceItemContactsComponent implements ControlValueAccessor, OnIni
         
         let modifiedRelations = JSON.parse(JSON.stringify(this.itemContactRelations));
         modifiedRelations.push(newRelation);
+        this.itemContactRelations = modifiedRelations;
+        this.propagateChange(modifiedRelations);
+        this.contactControl.setValue(null);
+        this.newRoleControl.setValue(null);
+        /*
         this.svcItemService.replaceContactRelations(this.itemId,modifiedRelations).subscribe(res => {
             this.itemContactRelations = res;
             this.contactControl.setValue(null);
             this.newRoleControl.setValue(null);
-        });
+        });*/
     }
     
     buildRequiredContactTypes(){
@@ -172,7 +177,7 @@ export class ServiceItemContactsComponent implements ControlValueAccessor, OnIni
             
         }
         for (let role of this.requiredContactRoles) {
-            console.log(role);
+
             let mappedContactType = this.roles.find(cType => cType.name==role);
             if (mappedContactType){
                 //console.log(mappedContactType);
@@ -196,9 +201,12 @@ export class ServiceItemContactsComponent implements ControlValueAccessor, OnIni
             return obj.contact.id !== contactId;
         });
         
+        this.itemContactRelations = modifiedRelations;
+        this.propagateChange(modifiedRelations);
+        /*
         this.svcItemService.replaceContactRelations(this.itemId,modifiedRelations).subscribe(res => {
             this.itemContactRelations = res;
-        });
+        });*/
     }
     
     
@@ -259,8 +267,9 @@ export class ServiceItemContactsComponent implements ControlValueAccessor, OnIni
     
     registerOnTouched() {}
     
-    writeValue(value: any) {
+    writeValue(value: Array<ContactRelationDto>) {
         //do nothing
+        this.itemContactRelations=value;
     }
 
     

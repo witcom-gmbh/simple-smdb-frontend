@@ -80,7 +80,7 @@ export class DslAbfrageComponent implements ControlValueAccessor, OnInit {
     abfrageResult:DSLAbfrageResult=null; 
     adressSearchControl = new FormControl();
     availableBSAProducts:Array<any>=[]; 
-    
+    controlDisabled:boolean=false;
    
     filteredAddresses : Observable<Array<GeocodeResponse>>;
     
@@ -324,6 +324,16 @@ export class DslAbfrageComponent implements ControlValueAccessor, OnInit {
         }
 
     }
+    
+    setDisabledState( isDisabled : boolean ) : void {
+        if(isDisabled){
+            this.controlDisabled=true;
+            
+        } else {
+            this.controlDisabled=false;
+        }
+    }
+
 
 
   
@@ -333,8 +343,9 @@ export class DslAbfrageComponent implements ControlValueAccessor, OnInit {
         this.productAddress = <DSLRechercheAdresse>{}; 
         this.productAddress.strasse=adresse.Strasse;
         this.productAddress.hausnummer=adresse.Hausnummer;
-        this.productAddress.hausnummernzusatz=adresse.Hausnummernzusatz;
+        this.productAddress.hausnummernzusatz=(adresse.Hausnummernzusatz === undefined) ? "" : adresse.Hausnummernzusatz;;
         this.productAddress.ort=adresse.Ort;
+        this.productAddress.ortsteil=(adresse.Ortsteil === undefined) ? "" : adresse.Ortsteil;
         this.productAddress.plz=adresse.Postleitzahl;
         this.productAddress.kls=adresse["KLS-ID"]; 
         
@@ -388,8 +399,21 @@ export class DslAbfrageComponent implements ControlValueAccessor, OnInit {
     registerOnTouched() {}
     
     writeValue(value: any) {
-        //do nothing
-        console.log("value", value);
+
+        if (t(value).isNullOrUndefined){
+            return;
+        }
+        this.abfrageResult =value;
+        if(t(value.addresse).isObject){
+        this.strasseFormControl.setValue(value.addresse.strasse);
+        this.hausnummerFormControl.setValue(value.addresse.hausnummer);
+        this.hausnummerzusatzFormControl.setValue(value.addresse.hausnummernzusatz);
+        this.plzFormControl.setValue(value.addresse.plz);
+        this.ortFormControl.setValue(value.addresse.ort);
+        this.klsFormControl.setValue(value.addresse.kls);
+        }
+
+        //this.productAddress=value.addresse;
     }
 
 }

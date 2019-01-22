@@ -1,7 +1,7 @@
 import { BrowserModule } from '@angular/platform-browser';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import { NgModule, APP_INITIALIZER,Provider } from '@angular/core';
-
+import { LoggerModule } from 'ngx-logger';
 import { AppComponent } from './app.component';
 import { ApiConfiguration } from './api/api-configuration';
 import { ApiModule } from './api/api.module';
@@ -14,6 +14,7 @@ import { SharedModule } from './shared/shared.module';
 import { ServicemgmtModule } from './servicemgmt/servicemgmt.module';
 import { HomeComponent } from './home/home.component';
 import { DfcModule } from './shared/dfc/dfc'
+import { environment } from '../environments/environment';
 
 
 /*
@@ -31,6 +32,8 @@ export const INIT_API_CONFIGURATION: Provider = {
   multi: true
 };
 
+
+
 @NgModule({
     
   declarations: [
@@ -45,7 +48,8 @@ export const INIT_API_CONFIGURATION: Provider = {
     ServicesModule,
     SharedModule,
     ServicemgmtModule,
-    DfcModule
+    DfcModule,
+    LoggerModule.forRoot(environment.loggerConfig)
   ],
   providers: [INIT_API_CONFIGURATION,,{provide: FormioAppConfig, useValue: formioConfiguration}],
   bootstrap: [AppComponent]

@@ -31,7 +31,7 @@ export class MockAutoCompleteComponent extends AbstractBaseComponent{
         //let model = this.getDynamicModel();
         let model = new DynamicInputModel({
 
-            id: this.attribute.name,
+            id: "attribute_"+this.attribute.name,
             label: this.getLabel(),
             value:this.getFormValue()
             
@@ -101,7 +101,7 @@ export class MockAutoCompleteComponent extends AbstractBaseComponent{
         
         let model = new DynamicInputModel({
 
-            id: this.attribute.name,
+            id: "attribute_"+this.attribute.name,
             label: this.getLabel(),
             value:this.getFormValue()
             

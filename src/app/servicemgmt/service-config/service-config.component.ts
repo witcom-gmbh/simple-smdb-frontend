@@ -16,6 +16,7 @@ import { ServiceItemDto,ServiceDataSelectorDto,ServiceItemTreeDto } from '../../
 export class ServiceConfigComponent implements OnInit {
     
     private svcItemId:number;
+    private serviceId:number;
     private svcItem:ServiceItemDto;
     private svcItemTree:ServiceItemTreeDto;
     private selectedSvcItem:ServiceItemDto;
@@ -32,13 +33,17 @@ export class ServiceConfigComponent implements OnInit {
   ngOnInit() {
       this.getServiceItem();
       this.subscription = this.svcItemService.updatedBS$
-       .subscribe(item => {console.log(item)});
+       .subscribe(item => {
+           console.log(item);
+           this.reloadTree();
+           }); 
   }
 
   getServiceItem():void{
      const id = +this.route.snapshot.paramMap.get('id');
      console.log('get service with id {}',id);
      this.svcItemId=id; 
+     this.serviceId=id;
      this.svcItemService.getItemById(id).subscribe(response => {
        //console.log(response)
        this.svcItem = response;
@@ -74,6 +79,16 @@ export class ServiceConfigComponent implements OnInit {
 
       
       //this.selectedSvcItem=svcItem;
+      
+  }
+  
+  reloadTree(){
+      this.svcItemService.getTreeById(this.svcItemId).subscribe(res =>
+         {
+             this.svcItemTree=res;
+             //console.log(res)
+         })
+      
       
   }
   

@@ -23,16 +23,16 @@ import {
     RippleGlobalOptions
 } from "@angular/material";
 
-import { DslAbfrageComponent,DSLAbfrageProdukt } from '../dfc';
+import { DslAbfrageComponent,DSLAbfrageProdukt,DSLAbfrageResult } from '../dfc';
 
 export const DYNAMIC_FORM_CONTROL_TYPE_DSLABFRAGE = "DSLABFRAGE";
 
-export interface DynamicDslAbfrageControlModelConfig extends DynamicFormValueControlModelConfig<string> {
+export interface DynamicDslAbfrageControlModelConfig extends DynamicFormValueControlModelConfig<DSLAbfrageResult> {
     selectableBSAProducts?:DSLAbfrageProdukt[];
     
 }
 
-export class DynamicDslAbfrageControlModel extends DynamicFormValueControlModel<string> {
+export class DynamicDslAbfrageControlModel extends DynamicFormValueControlModel<DSLAbfrageResult> {
     
     @serializable() selectableBSAProducts:DSLAbfrageProdukt[];
     

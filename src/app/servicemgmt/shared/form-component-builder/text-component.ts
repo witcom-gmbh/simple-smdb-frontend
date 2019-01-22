@@ -1,5 +1,5 @@
 import { AbstractBaseComponent } from './abstract-base-component';
-
+import t from 'typy';
 import {
     DynamicInputControlModel,
     DynamicFormModel,
@@ -13,63 +13,50 @@ import { Select,DataValueDto,TextField,ValidateDto,BaseComponent,Button } from '
 
 export class TextComponent extends AbstractBaseComponent{
     
+    private attributeRules=null;
+    
+
     
     getDynamicModel():DynamicInputControlModel<any>{
         
         
         let model = new DynamicInputModel({
 
-            id: this.attribute.name,
+            id: "attribute_"+this.attribute.name,
             label: this.getLabel(),
-            value:this.getFormValue()
+            value:this.getFormValue(),
+            additional:{
+                type:"attribute",
+                attribute:this.attribute,
+                attributeValueHandler:this.getAttributeValueHandler()
+            }
+
             
             //maxLength: 42,
             //placeholder: "Sample input"
         });
-         
-        if (this.isAttributeRequiredForStatus('requiredOffered')) {
-            let validators = { required: null,minLength: 3};
-            model.validators=validators;
-            model.errorMessages= { required: "{{ label }} ist erforderlich." };
+        model.validators={};
+        //custom validators
+        if(!t(this.attributeRules).isEmptyArray) {
+            console.log("rules ",this.attributeRules);
+            const validators = { };
+            for (let rule of this.attributeRules){
+                model.validators[rule.validationType]=null;
+                
+            }
+            //model.validators=validators;
         }
+        
         if (this.attribute.attributeDef.attributeType.mandatory === true){
-            let validators = { required: null,minLength: 3};
-            model.validators=validators;
+            //let validators = { required: null,minLength: 3};
+            model.validators["required"]=null;
             model.errorMessages= { required: "{{ label }} ist erforderlich." };
         }
         
-        if (this.attribute.attributeDef.attributeDef.readonly === true){
+        if (!this.canChangeAttribute()){
             model.disabled=true;
         }
         return model;
-    }
-    
-    getComponent():BaseComponent{
-        
-        let text = new TextField(this.attribute.name);
-        text.label = this.getLabel();
-        text.description = this.getDescription();
-        
-        //status muss aus service-item gelesen werden
-        if (this.isAttributeRequiredForStatus('requiredOffered')){
-            let validator = new ValidateDto();
-            validator.required=true;
-            validator.minLength=1;
-            text.validate=validator; 
-        }
-      
-        if (this.attribute.attributeDef.attributeDef.readonly === true){
-            text.disabled=true;
-        }
-
-        if (this.attribute.attributeDef.attributeType.mandatory === true){
-            let validator = new ValidateDto();
-            validator.required=true;
-            validator.minLength=1;
-            text.validate=validator;
-        }
-
-        return text;
     }
     
     getFormValue():any{
@@ -77,5 +64,11 @@ export class TextComponent extends AbstractBaseComponent{
                  return JSON.parse(this.attribute.value); 
         }
         return this.attribute.value; 
+    }
+    
+    AttributeRules(rules):any{
+        
+        this.attributeRules=rules.filter(r=>r.attributeName==this.attribute.name);
+        return this;
     }
 }

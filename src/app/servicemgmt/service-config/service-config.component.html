@@ -1,17 +1,17 @@
 <div  *ngIf="svcItemTree">
   <div class="row">
     <div class="col-3">
-    <h3>Service-Element auswählen</h3>
+    <span (click)="onSelectServiceItem(svcItemTree.service)">Service konfigurieren</span>
+    <h3>Untergeordnete Service-Elemente</h3>
 
     <ul>
-<li (click)="onSelectServiceItem(svcItemTree.service)">{{svcItemTree.service.displayName}}</li>
 <li *ngFor="let item of svcItemTree.serviceAssets" (click)="onSelectServiceItem(item)">
-Service-Asset&nbsp;{{item.serviceAsset.roleDisplayName}}
+{{item.serviceAsset.roleDisplayName}}
 </li>
 </ul>
-     
+    <service-price [serviceItemId]="serviceId"></service-price> 
     </div>
-    <div class="col-6">
+    <div class="col-8">
     <!--
       <div *ngIf="selectedSvcItem">
       <app-svcitem-config [svcItem]="selectedSvcItem"></app-svcitem-config>
@@ -23,6 +23,7 @@ Service-Asset&nbsp;{{item.serviceAsset.roleDisplayName}}
       
     </div>
   </div>
+  
 </div>
 
 

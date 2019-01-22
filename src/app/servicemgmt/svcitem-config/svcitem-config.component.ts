@@ -57,7 +57,7 @@ export class SvcitemConfigComponent implements OnInit,OnChanges {
   
   updateSvcItem(submission:any):void{
       console.log(submission.data); 
-      this.svcItemService.modifyServiceItem(this.svcItem.id,
+      this.svcItemService.modifyServiceItem(this.svcItem,
       this.formBuilderService.buildModifiedAttributesFromFormData(this.itemAttributes,submission.data)).subscribe(res => {
           console.log("Update ok");
           }, err => {console.error(err);}

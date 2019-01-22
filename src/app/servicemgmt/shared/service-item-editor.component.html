@@ -2,15 +2,33 @@
 <h3>{{ serviceItem| svcItemDisplayName }}</h3>
 <div *ngIf="formGroup">
 <form [formGroup]="formGroup">
+ 
 
     <dynamic-material-form [group]="formGroup" [model]="formModel" (blur)="onBlur($event)"
                                    (change)="onChange($event)"
                                    (focus)="onFocus($event)"
 (matEvent)="onMatEvent($event)">
+ 
+<ng-template modelId="switchMultiplicity" align="START">
+        
+            <p><b>Service-Optionen</b></p> 
+            
+        </ng-template>
+
 </dynamic-material-form>
+ 
+<div class="col-2">
+<button type="button" class="btn btn-default"  (click)="updateServiceItem()">Speichern</button>
+</div>        
                             
 </form>
+
+<pre>{{formGroup.status  | json}}</pre> 
+
 </div>
+
+
+
 <!--
 <service-item-contacts [itemId]="itemId" [requiredContactRoles]="requiredContactRoles"></service-item-contacts>
 -->

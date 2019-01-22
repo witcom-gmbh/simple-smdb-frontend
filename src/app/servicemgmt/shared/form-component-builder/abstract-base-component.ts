@@ -1,12 +1,16 @@
 import { ServiceItemDto,AttributeDto,CustomPropertyDto } from '../../../api/models';
 import { ServiceItemService } from '../../../services/service-item.service';
+import t from 'typy';
+import {ValueHandler} from '../value-handler.enum';
+
 //import { Select,DataValueDto,TextField,ValidateDto,BaseComponent,Button } from 'formio-schema';
 import {
     DynamicInputControlModel,
     DynamicFormModel,
     DynamicCheckboxModel,
     DynamicInputModel,
-    DynamicRadioGroupModel
+    DynamicRadioGroupModel,
+    DynamicFormValueControlModel
 } from "@ng-dynamic-forms/core";
 //import BaseComponent from 'formiojs/components/base/Base';
 
@@ -19,15 +23,37 @@ export abstract class AbstractBaseComponent {
     protected attribute:any;
     protected itemAttributes:Array<any>;
     protected serviceItem:ServiceItemDto;
+    protected attributeValueHandler:ValueHandler;
     
     constructor(attribute:AttributeDto,itemAttributes:Array<any>,serviceItem:ServiceItemDto){
         //console.log(serviceItem);
         this.attribute = attribute;
         this.serviceItem = serviceItem;
         this.itemAttributes = itemAttributes;
+    } 
+    
+    AttributeValueHandler(handler:ValueHandler){
+        this.attributeValueHandler=handler;
+        return this;
     }
     
-    abstract getDynamicModel():DynamicInputControlModel<any>;
+    protected getAttributeValueHandler():ValueHandler{
+        if(!t(this.attributeValueHandler).isNullOrUndefined){
+            
+            return this.attributeValueHandler; 
+        }
+        //Return Default-Handlers depending on Attribute-Type
+        switch(this.attribute._type){
+            case "AttributeEnumDto":
+                return ValueHandler.DEFAULT_ENUM_HANDLER;
+            case "AttributeStringDto":
+                return ValueHandler.DEFAULT_STRING_HANDLER;
+        }
+        return; 
+        
+    }
+    
+    abstract getDynamicModel():DynamicFormValueControlModel<any>;
     //abstract getComponent():BaseComponent;
     abstract getFormValue():any;
     
@@ -41,6 +67,25 @@ export abstract class AbstractBaseComponent {
         return f.transform(this.attribute.attributeDef.attributeDef.description);        
     }
 
+    /**
+     * Checks if Attribute can be changed
+     */
+    canChangeAttribute():boolean{
+        if (this.attribute.attributeDef.attributeDef.readonly === true){
+            return false;
+            
+        }
+        //Nur bei funktionalen attributen
+        if(this.attribute.attributeDef.attributeDef.functionalType === "FUNCTIONAL"){
+        if ((this.serviceItem.status !== "TEST") && (this.serviceItem.status !== "INWORK")){
+
+            return false;
+        }
+        }
+
+        return true;
+
+    }
     /**
      * Get Value-Object of EnumAttribute by Value-Systemname
      */

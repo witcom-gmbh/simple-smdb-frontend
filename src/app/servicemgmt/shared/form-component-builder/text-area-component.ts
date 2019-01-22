@@ -1,5 +1,5 @@
 import { AbstractBaseComponent } from './abstract-base-component';
-
+import t from 'typy';
 import {
     DynamicInputControlModel,
     DynamicFormModel,
@@ -12,39 +12,49 @@ import {
 
 export class TextAreaComponent extends AbstractBaseComponent{
     
+    private attributeRules=null;
     
-    getDynamicModel():DynamicInputControlModel<any>{
+    
+    getDynamicModel():DynamicTextAreaModel{
         
-        
+          
         let model = new DynamicTextAreaModel({
 
-            id: this.attribute.name,
+            id: "attribute_"+this.attribute.name,
             label: this.getLabel(),
             value:this.getFormValue(),
-            rows:5
-            
-            //maxLength: 42,
-            //placeholder: "Sample input"
+            rows:5,
+            additional:{
+                cdkAutosizeMinRows:false,
+                type:"attribute",
+                attribute:this.attribute,
+                attributeValueHandler:this.getAttributeValueHandler()
+            }
         });
-         
-        if (this.isAttributeRequiredForStatus('requiredOffered')) {
-            let validators = { required: null,minLength: 3};
-            model.validators=validators;
-            model.errorMessages= { required: "{{ label }} ist erforderlich." };
+        
+        model.validators={};
+        //custom validators
+        if(!t(this.attributeRules).isEmptyArray) {
+            console.log("rules ",this.attributeRules);
+            const validators = { };
+            for (let rule of this.attributeRules){
+                model.validators[rule.validationType]=null;
+                
+            }
+            //model.validators=validators;
         }
+        
         if (this.attribute.attributeDef.attributeType.mandatory === true){
-            let validators = { required: null,minLength: 3};
-            model.validators=validators;
+            //let validators = { required: null,minLength: 3};
+            model.validators["required"]=null;
             model.errorMessages= { required: "{{ label }} ist erforderlich." };
         }
         
-        if (this.attribute.attributeDef.attributeDef.readonly === true){
+        if (!this.canChangeAttribute()){
             model.disabled=true;
         }
-
-        
-        
-        
+         
+ 
         return model;
         
     }
@@ -55,4 +65,11 @@ export class TextAreaComponent extends AbstractBaseComponent{
         }
         return this.attribute.value; 
     }
+    
+    AttributeRules(rules):any{
+        
+        this.attributeRules=rules.filter(r=>r.attributeName==this.attribute.name);
+        return this;
+    }
+    
 }

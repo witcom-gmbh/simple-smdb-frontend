@@ -1,0 +1,5 @@
+export enum ValueHandler{
+    DEFAULT_ENUM_HANDLER,
+    DEFAULT_STRING_HANDLER,
+    CONFIG_ENUM_HANDLER
+}

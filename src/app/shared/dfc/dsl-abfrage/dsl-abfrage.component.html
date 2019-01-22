@@ -1,5 +1,17 @@
-<div class="container">
-<h3>DSL-Abfrage</h3>
+<b>DSL-Produkt</b>
+<div *ngIf="abfrageResult" class="row mt-4"> 
+<div class="col-10">
+Aktuell gewähltes BSA-Produkt : {{abfrageResult.produkt.produktoptionName }} in  {{abfrageResult.addresse.strasse }} {{abfrageResult.addresse.hausnummer }}, {{abfrageResult.addresse.ort }} 
+</div> 
+</div>
+<div *ngIf="!abfrageResult" class="row mt-4"> 
+<div class="col-10">
+Noch keine DSL-Produkt-Abfrage ausgeführt - Standard-Bandbreite 100/40 
+</div> 
+</div>
+
+<div [hidden]="controlDisabled" >
+<p><b>DSL-Produkt abfragen</b></p>
 <div class="row">
 <div class="col-8">
 <mat-slide-toggle [labelPosition]="before" [(ngModel)]="rechercheAdvanced" >Profi-Suche</mat-slide-toggle>
@@ -8,7 +20,7 @@
 <div class="row" [hidden]="rechercheAdvanced"> 
   <div class="col-10">
   <mat-form-field class="example-full-width">
-    <input type="text" placeholder="Adresse suchen" aria-label="Number" matInput [formControl]="adressSearchControl" [matAutocomplete]="autoAddress">
+    <input type="text" placeholder="Nach Adresse suchen" aria-label="Number" matInput [formControl]="adressSearchControl" [matAutocomplete]="autoAddress">
 
     <mat-autocomplete #autoAddress="matAutocomplete" [displayWith]="displayAddressFn" (optionSelected)="onAddressSelectionChanged($event)"> 
       <mat-option *ngFor="let address of filteredAddresses | async" [value]="address">
@@ -134,11 +146,7 @@
 </div>
 </div>
 
-<div *ngIf="abfrageResult" class="row mt-4"> 
-<div class="col-10">
-Aktuell gewähltes BSA-Produkt : {{abfrageResult.produkt | json }}
-</div>
-</div>
+
 
 </div>
 

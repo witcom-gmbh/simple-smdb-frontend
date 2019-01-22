@@ -2,7 +2,7 @@
 // `ng build --prod` replaces `environment.ts` with `environment.prod.ts`.
 // The list of file replacements can be found in `angular.json`.
 
-
+import {  NgxLoggerLevel } from 'ngx-logger';
 import { FormioAppConfig } from 'angular-formio';
 
 let formioConfig: FormioAppConfig = {
@@ -11,9 +11,16 @@ let formioConfig: FormioAppConfig = {
   icons: 'fontawesome'
 };
 
+let LOGGER_CONFIG = {
+    //serverLoggingUrl: '/api/logs',
+    level: NgxLoggerLevel.DEBUG,
+    serverLogLevel: NgxLoggerLevel.OFF
+};
+
 export const environment = {
   production: false,
-  formioConfig:formioConfig
+  formioConfig:formioConfig,
+  loggerConfig:LOGGER_CONFIG
 };
 
 /*
