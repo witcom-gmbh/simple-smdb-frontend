@@ -3,6 +3,7 @@ import { FormGroup,ValidationErrors } from "@angular/forms";
 import { catchError } from 'rxjs/operators';
 import { forkJoin,of} from 'rxjs';
 import t from 'typy';
+import { AlertService } from 'ngx-alerts';
 import { DynamicFormModel, DynamicFormService } from "@ng-dynamic-forms/core";
 import {MockApiSearchService} from '../../services/mock-api-search.service'
 import {
@@ -14,7 +15,7 @@ import {
 import { ServiceItemDto,AttributeDto,ServiceItemMultiplicityDto } from '../../api/models';
 import { ServiceItemService } from '../../services/service-item.service';
 import { SmdbPartnerService} from '../../services/smdb-partner.service';
-import { MessageService } from '../../services/message.service';
+
 import { ServiceItemFormBuilder} from './service-item-form-builder.service'
 
 @Component({
@@ -35,7 +36,7 @@ export class ServiceItemEditorComponent implements OnInit {
     
     constructor(
         private formService: DynamicFormService,
-        private messageService:MessageService,
+        private alertService: AlertService,
         private mockSearchService:MockApiSearchService,
         private servicItemService:ServiceItemService,
         private smdbPartnerService: SmdbPartnerService,
@@ -83,20 +84,20 @@ export class ServiceItemEditorComponent implements OnInit {
                 },
                 err => {
                     console.log(err);
-                    this.messageService.add(err)
+                    this.alertService.danger('Eingabemaske konnte nicht erstellt werden');
                 });
                 
             },
             err => {
                     console.log("Error getting ItemAttributes & Contact-Relations",err);
-                    this.messageService.add(err)
+                    //this.messageService.add(err)
             });
 
 
         },
         err => {
            console.log(err);
-           this.messageService.add(err)
+           //this.messageService.add(err)
         });
         
 
@@ -125,16 +126,16 @@ export class ServiceItemEditorComponent implements OnInit {
            this.serviceItem=res;
            this.servicItemService.replaceContactRelations(this.serviceItem.id,this.formGroup.value.serviceitem_contactRelation).subscribe(res => {
             //this.itemContactRelations = res;
-            console.log("Update ok", res);
-            this.servicItemService.notifySvcItemUpdate(this.serviceItem.id);
-            
+            this.alertService.success('Service-Element wurde aktualisiert');
             }, err => {console.error(err);
           }
             
             );
            
           
-          }, err => {console.error(err);
+          }, err => {
+              console.error(err);
+              this.alertService.warning('Service-Element konnte nicht aktualisiert werden');
           }
         );
             

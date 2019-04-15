@@ -1,7 +1,6 @@
 import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { ErrorHandlerService } from './error-handler.service';
-import { MessageService } from './message.service';
 import { NextRequestState } from './next-request-state';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -16,7 +15,6 @@ export class ApiInterceptor implements HttpInterceptor {
     
   constructor(
     private nextRequestState: NextRequestState,
-    private notification: MessageService,
     private errorHandler: ErrorHandlerService
     ) {
   }

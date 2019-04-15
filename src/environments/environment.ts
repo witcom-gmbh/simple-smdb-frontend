@@ -4,6 +4,7 @@
 
 import {  NgxLoggerLevel } from 'ngx-logger';
 import { FormioAppConfig } from 'angular-formio';
+import { KeycloakConfig } from 'keycloak-angular';
 
 let formioConfig: FormioAppConfig = {
   appUrl: 'http://localhost:4200',
@@ -17,10 +18,19 @@ let LOGGER_CONFIG = {
     serverLogLevel: NgxLoggerLevel.OFF
 };
 
+// Add here your keycloak setup infos
+let keycloakConfig: KeycloakConfig = {
+  url: 'https://auth.witcom-dev.services/auth',
+  realm: 'demo-realm',
+  clientId: 'demo-portal'
+};
+
+
 export const environment = {
   production: false,
   formioConfig:formioConfig,
-  loggerConfig:LOGGER_CONFIG
+  loggerConfig:LOGGER_CONFIG,
+  keycloak: keycloakConfig
 };
 
 /*

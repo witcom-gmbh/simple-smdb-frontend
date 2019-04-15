@@ -1,8 +1,33 @@
-<h1>
-    {{ title }}
-</h1>
+<nav class="navbar navbar-dark bg-dark mb-5">
+  <a class="navbar-brand" href="/">Demo-Portal</a>
+  <div class="navbar-expand mr-auto">
+    <div class="navbar-nav">
+      <a routerLink="/home" routerLinkActive="active" class="nav-item nav-link" >Home</a>
+    </div>
+  </div>
+  <div class="navbar-expand ml-auto navbar-nav">
+  <span class="navbar-text navbar-right">Angemeldet als <a href="#"><simple-user-info></simple-user-info></a></span>
+    
+    
+    <!--
+    <div class="navbar-nav"> 
+      <a class="nav-item nav-link" href="https://github.com/beeman" target="_blank">
+        <i class="fa fa-github"></i>
+      </a>
+      <a class="nav-item nav-link" href="https://twitter.com/beeman_nl" target="_blank">
+        <i class="fa fa-twitter"></i>
+      </a>
+      <a class="nav-item nav-link" href="https://medium.com/@beeman" target="_blank">
+        <i class="fa fa-medium"></i>
+      </a>
+          </div>
+      -->
+
+  </div>
+</nav>
+
+<ngx-alerts></ngx-alerts>
 <router-outlet></router-outlet>
-<app-messages></app-messages>
 
 
 

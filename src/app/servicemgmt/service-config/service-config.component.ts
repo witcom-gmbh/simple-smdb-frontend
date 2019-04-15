@@ -3,7 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 import {Subscription} from 'rxjs'; 
 import { Location } from '@angular/common';
 import {ServiceItemService} from '../../services/service-item.service';
-import { MessageService } from '../../services/message.service';
+import { AlertService } from 'ngx-alerts';
 
 //import { ServiceRetrievalV2Service } from '../../api/services';
 import { ServiceItemDto,ServiceDataSelectorDto,ServiceItemTreeDto } from '../../api/models';
@@ -25,7 +25,7 @@ export class ServiceConfigComponent implements OnInit {
   constructor(
     //private svcRetrieval:ServiceRetrievalV2Service,
     private svcItemService:ServiceItemService,
-    private messageService:MessageService,
+    private alertService: AlertService,
     private route: ActivatedRoute,
     private location: Location
   ) { }
@@ -69,8 +69,7 @@ export class ServiceConfigComponent implements OnInit {
             //console.log(response); 
         },
         err => {
-           console.log(err);
-           this.messageService.add(err)
+           this.alertService.danger('Service-Element konnte nicht geladen werden');
         });
       /*
       this.svcItemService.getItemById(svcItem.id).subscribe(response => {

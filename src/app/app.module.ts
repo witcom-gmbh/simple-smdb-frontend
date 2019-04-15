@@ -1,5 +1,6 @@
 import { BrowserModule } from '@angular/platform-browser';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
+import {NgbModule} from '@ng-bootstrap/ng-bootstrap';
 import { NgModule, APP_INITIALIZER,Provider } from '@angular/core';
 import { LoggerModule } from 'ngx-logger';
 import { AppComponent } from './app.component';
@@ -15,6 +16,11 @@ import { ServicemgmtModule } from './servicemgmt/servicemgmt.module';
 import { HomeComponent } from './home/home.component';
 import { DfcModule } from './shared/dfc/dfc'
 import { environment } from '../environments/environment';
+import { AlertModule } from 'ngx-alerts';
+
+import { KeycloakAngularModule, KeycloakService } from 'keycloak-angular';
+import { AppAuthGuard } from './app.authguard';
+import { initializer } from './utils/app-init';
 
 
 /*
@@ -32,6 +38,12 @@ export const INIT_API_CONFIGURATION: Provider = {
   multi: true
 };
 
+export const KEYCLOAK_PROVIDER: Provider = {
+    provide: APP_INITIALIZER,
+    useFactory: initializer,
+    multi: true,
+    deps: [KeycloakService]
+};
 
 
 @NgModule({
@@ -42,6 +54,7 @@ export const INIT_API_CONFIGURATION: Provider = {
   ],
   imports: [
     BrowserModule,
+    NgbModule,
     BrowserAnimationsModule,
     ApiModule,
     AppRoutingModule,
@@ -49,9 +62,11 @@ export const INIT_API_CONFIGURATION: Provider = {
     SharedModule,
     ServicemgmtModule,
     DfcModule,
-    LoggerModule.forRoot(environment.loggerConfig)
+    LoggerModule.forRoot(environment.loggerConfig),
+    KeycloakAngularModule,
+    AlertModule.forRoot({maxMessages: 5, timeout: 5000, position: 'right'})
   ],
-  providers: [INIT_API_CONFIGURATION,,{provide: FormioAppConfig, useValue: formioConfiguration}],
+  providers: [INIT_API_CONFIGURATION,KEYCLOAK_PROVIDER,{provide: FormioAppConfig, useValue: formioConfiguration}],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

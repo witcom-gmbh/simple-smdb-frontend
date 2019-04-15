@@ -1,9 +1,9 @@
 import { Component, OnInit,Input } from '@angular/core';
 import { ServiceItemDto,AttributeDto,MoneyItemDto } from '../../../api/models';
 import {ServiceItemService,ServiceTerm} from '../../../services/services';
-import { MessageService } from '../../../services/message.service';
 import t from 'typy';
 import { NGXLogger } from 'ngx-logger';
+import { AlertService } from 'ngx-alerts';
 import {Subscription} from 'rxjs'; 
 import { SmdbConfig } from '../smdb-config';
 
@@ -22,7 +22,7 @@ export class ServicePriceComponent implements OnInit {
 
   constructor(
         private logger: NGXLogger,
-        private messageService:MessageService,
+        private alertService: AlertService,
         private servicItemService:ServiceItemService,
   ) { }
 
@@ -49,7 +49,7 @@ export class ServicePriceComponent implements OnInit {
     
           }   
           if (serviceTerm===null){
-              this.messageService.add("Service-Preisberechnung nicht möglich");
+              this.alertService.warning('Service-Preisberechnung nicht möglich');
               return;
           }
       } else {
@@ -61,7 +61,7 @@ export class ServicePriceComponent implements OnInit {
       let allowedAccoutingsTypeMapping = SmdbConfig.accountingTypeMapping.find(m => m.serviceTerms === serviceTerm.value);
       if (t(allowedAccoutingsTypeMapping,'accountingTypes').isEmptyArray){
           this.logger.warn("No Accountingtypes found for Service-Terms ",serviceTerm.value);
-          this.messageService.add("Service-Preisberechnung nicht möglich");
+          this.alertService.warning('Service-Preisberechnung nicht möglich');
           return;
       }
       let allowedAccoutingsTypes = allowedAccoutingsTypeMapping.accountingTypes; 
@@ -85,7 +85,7 @@ export class ServicePriceComponent implements OnInit {
             this.serviceItem=response;
             this.getPrice();
         },err => {
-            this.messageService.add("Service konnte nicht geladen werden");
+            this.alertService.danger("Service konnte nicht geladen werden");
             
         });
   }

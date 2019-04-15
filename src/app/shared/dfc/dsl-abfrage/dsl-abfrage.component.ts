@@ -3,6 +3,7 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR , FormGroupDirective, NgForm,Va
 import {FormControl} from '@angular/forms';
 import {ErrorStateMatcher} from '@angular/material/core';
 import {Observable,of} from 'rxjs';
+import { AlertService } from 'ngx-alerts';
 import t from 'typy';
 
 import {
@@ -16,7 +17,7 @@ import {
 } from 'rxjs/operators';
 import { MatAutocompleteModule,MatAutocomplete,MatInput,MatSelect,MatAutocompleteSelectedEvent,MatSelectChange  } from "@angular/material";
 import {DSLRechercheAdresse,DslRechercheService} from './dsl-recherche.service';
-import {NominatimService,GeocodeResponse,MessageService} from '../../../services/services';
+import {NominatimService,GeocodeResponse} from '../../../services/services';
 
 export interface NominatimAddress {
     road: string;
@@ -128,7 +129,7 @@ export class DslAbfrageComponent implements ControlValueAccessor, OnInit {
     constructor(
     private nominatimService:NominatimService,
     private dslRechercheService:DslRechercheService,
-    private messageService:MessageService
+    private alertService: AlertService
     ) { }
 
     ngOnInit() {
@@ -204,8 +205,8 @@ export class DslAbfrageComponent implements ControlValueAccessor, OnInit {
     
     lookupDSLProdukt(){
         if (!this.rechercheAddressValid()){ 
-            console.log("Recherche-Adresse ungültig");
-            this.messageService.add("Recherche-Adresse ungültig");
+            //console.log("Recherche-Adresse ungültig");
+            this.alertService.warning("Recherche-Adresse ungültig");
             return;
         }
         //populate rechercheaddresse from formcontrol
@@ -231,7 +232,8 @@ export class DslAbfrageComponent implements ControlValueAccessor, OnInit {
         response => {
             console.log(response);
             if (response.hasOwnProperty('error')){
-               this.messageService.add(response.error); 
+               this.alertService.warning("DSL-Recherche-Fehler");
+               //this.messageService.add(response.error); 
             } else {
                 //
                 this.parseRechercheResult(response);
@@ -239,7 +241,10 @@ export class DslAbfrageComponent implements ControlValueAccessor, OnInit {
             this.rechercheRunning=false;
             console.log('done');
         },
-        err => {this.messageService.add(err);this.rechercheRunning=false;}
+        err => {
+            //this.messageService.add(err);
+            this.alertService.warning("DSL-Recherche-Fehler");
+            this.rechercheRunning=false;}
         );        
     }
     
@@ -257,7 +262,7 @@ export class DslAbfrageComponent implements ControlValueAccessor, OnInit {
         const ergebnis = t(result, 'sucheMarktprodukt.Adressbezogen.Adresse_Response.Ergebnis').safeObject;
         console.log(ergebnis);
         if (ergebnis === undefined){
-           this.messageService.add("Recherche-Ergebnis ungueltig"); 
+           this.alertService.warning("DSL-Recherche-Ergebnis ungueltig"); 
            return; 
         }
         switch (ergebnis.RueckmeldungSchluessel){
@@ -276,10 +281,10 @@ export class DslAbfrageComponent implements ControlValueAccessor, OnInit {
             case "10202":
             case "10203":            
             case "10204":            
-                this.messageService.add("Negatives Recherche-Ergebnis: " + ergebnis.RueckmeldungText ); 
+                this.alertService.warning("DSL-Recherche-Fehler: " + ergebnis.RueckmeldungText ); 
                 break;                
             default:
-                this.messageService.add("Recherche-Ergebnis: " + ergebnis.RueckmeldungText ); 
+                this.alertService.warning("DSL-Recherche-Fehler: " + ergebnis.RueckmeldungText ); 
         }
     }
     
@@ -368,7 +373,7 @@ export class DslAbfrageComponent implements ControlValueAccessor, OnInit {
         }
 
         if (this.availableBSAProducts.length==0){
-            this.messageService.add("Keine BSA-Produkte gefunden");  
+            this.alertService.warning("Keine BSA-Produkte gefunden");  
             
         }
         console.log("available bsa-products ",this.availableBSAProducts); 
@@ -379,7 +384,7 @@ export class DslAbfrageComponent implements ControlValueAccessor, OnInit {
         console.log("Suche verfeinern"); 
         const addrList = t(result, 'sucheMarktprodukt.Adressbezogen.Adresse_Response.AdressTreffer').safeObject;
         if (addrList === undefined){
-            this.messageService.add("Recherche-Ergebnis nicht eindeutig, aber keine Auswahl an Ergebnissen erhalten"); 
+            this.alertService.warning("Recherche-Ergebnis nicht eindeutig, aber keine Auswahl zur Eingrenzung erhalten"); 
             return;
         }
         this.rechercheRefinedAddressList = addrList;
