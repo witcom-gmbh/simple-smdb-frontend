@@ -187,7 +187,7 @@ export class ServiceItemFormBuilder {
         return formObservable;
     }
     
-    getFormModelForMultiplicity(childrenMultiplicities:Array<ServiceItemMultiplicityDto>):Observable<any>{
+    getFormModelForMultiplicity (childrenMultiplicities:Array<ServiceItemMultiplicityDto>):Observable<any>{
         let formModel : DynamicFormModel = [];
         let formObservable = new Observable((observer) => {
             
