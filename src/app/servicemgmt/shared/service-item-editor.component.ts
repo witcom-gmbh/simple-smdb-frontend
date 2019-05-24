@@ -122,15 +122,17 @@ export class ServiceItemEditorComponent implements OnInit {
        let modifiedItem = this.serviceItemFormBuilder.getUpdatedServiceItemFromModel(this.formModel);
        let modifiedAttributes = this.serviceItemFormBuilder.getUpdatedAttributesFromModel(this.formModel);
        this.servicItemService.modifyServiceItem(modifiedItem,modifiedAttributes).subscribe(res => {
-           //console.log("Update ok", res);
+           console.log("Contact-Relation", this.formGroup.value.serviceitem_contactRelation);
            this.serviceItem=res;
+           this.alertService.success('Service-Element wurde aktualisiert');
+           /*
            this.servicItemService.replaceContactRelations(this.serviceItem.id,this.formGroup.value.serviceitem_contactRelation).subscribe(res => {
             //this.itemContactRelations = res;
             this.alertService.success('Service-Element wurde aktualisiert');
             }, err => {console.error(err);
           }
             
-            );
+            );*/
            
           
           }, err => {
