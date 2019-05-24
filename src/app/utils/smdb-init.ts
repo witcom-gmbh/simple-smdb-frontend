@@ -3,6 +3,6 @@ import { ApiConfiguration } from '../api/api-configuration';
 
 export function initApiConfiguration(config: ApiConfiguration): Function {
   return () => {
-    config.rootUrl = 'https://apis.witcom-dev.services/smdb';
+    config.rootUrl = environment.smdbConfig.url;
   };
 }

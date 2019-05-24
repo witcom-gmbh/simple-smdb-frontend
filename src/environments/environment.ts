@@ -20,17 +20,23 @@ let LOGGER_CONFIG = {
 
 // Add here your keycloak setup infos
 let keycloakConfig: KeycloakConfig = {
-  url: 'https://auth.witcom-dev.services/auth',
-  realm: 'demo-realm',
+  url: 'https://auth.dev.witcom.services/auth',
+  realm: 'witcom',
   clientId: 'demo-portal'
 };
 
+let smdbConfig = {
+    url: 'https://apis.dev.witcom.services/smdb'
+    
+}
 
 export const environment = {
   production: false,
+  apiUrl:'apis.dev.witcom.services',
   formioConfig:formioConfig,
   loggerConfig:LOGGER_CONFIG,
-  keycloak: keycloakConfig
+  keycloak: keycloakConfig,
+  smdbConfig: smdbConfig
 };
 
 /*

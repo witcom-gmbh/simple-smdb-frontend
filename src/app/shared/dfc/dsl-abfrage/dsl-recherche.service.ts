@@ -48,9 +48,9 @@ export class DslRechercheService {
        
         let headers= {'Authorization':'Basic ' + btoa("5307:cra56j3")};
       
-        const options = {headers, responseType: 'text' as 'text'};
-
-        return this.http.post("https://apis.witcom-dev.services/dslrecherche/dslabfrage_wsss.php",formData,options)
+        const options = {responseType: 'text' as 'text'};
+ 
+        return this.http.post("https://apis.dev.witcom.services/dslrecherche/dslabfrage_wsss.php",formData,options)
         .pipe(
             map(results => {
                 

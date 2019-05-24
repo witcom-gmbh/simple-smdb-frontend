@@ -11,9 +11,9 @@ export function initializer(keycloak: KeycloakService): () => Promise<any> {
           initOptions: {
             onLoad: 'login-required',
             checkLoginIframe: false
-          },
+          }, 
           bearerPrefix: 'Bearer',
-          bearerExcludedUrls: ['https://apis.witcom-dev.services/dslrecherche','http://nominatim.openstreetmap.org/search']
+          bearerExcludedUrls: ['https://nominatim.openstreetmap.org/search']
         });
         resolve();
       } catch (error) {

@@ -59,7 +59,7 @@ export class ErrorHandlerService {
    * @param err The response object
    */
   handleHttpError(err: HttpErrorResponse) {
-      
+     
     if (err.error instanceof Error) {
       // Client-side error
       console.error('Client-side request error');
