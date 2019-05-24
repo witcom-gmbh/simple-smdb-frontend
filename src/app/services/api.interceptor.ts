@@ -4,6 +4,8 @@ import { ErrorHandlerService } from './error-handler.service';
 import { NextRequestState } from './next-request-state';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { environment } from '../../environments/environment';
+
 
 /**
  * Intercepts requests to set the correct headers and handle errors
@@ -20,7 +22,7 @@ export class ApiInterceptor implements HttpInterceptor {
   }
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    if (!req.url.includes('apis.witcom-dev.services')) {
+    if (!req.url.includes(environment.apiUrl)) {
       // This is not a request to the API! proceed as is
       return next.handle(req);
     }
@@ -38,6 +40,7 @@ export class ApiInterceptor implements HttpInterceptor {
     // Also handle errors globally
     return next.handle(req).pipe(
       tap(x => {
+          
         if (x instanceof HttpResponse) {
           this.nextRequestState.finish(req);
         }
