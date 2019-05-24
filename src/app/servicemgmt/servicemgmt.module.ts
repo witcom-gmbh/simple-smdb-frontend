@@ -20,12 +20,14 @@ import { ServiceItemEditorComponent } from './shared/service-item-editor.compone
 import { FormTestComponent } from './form-test/form-test.component';
 //import { ServiceItemContactsComponent} from '../shared/dfc/dfc';
 import { DfcModule } from '../shared/dfc/dfc';
-import { ServicePriceComponent } from './shared/service-price/service-price.component'
+import { ServicePriceComponent } from './shared/service-price/service-price.component';
+import { TestInstantiateComponent } from './shared/test-instantiate/test-instantiate.component'
 @NgModule({
     
   declarations: [ServiceConfigComponent, SvcitemConfigComponent, ServiceItemEditorComponent,
     FormTestComponent,
     ServicePriceComponent,
+    TestInstantiateComponent,
     ],
   imports: [
     CommonModule,
@@ -44,7 +46,8 @@ import { ServicePriceComponent } from './shared/service-price/service-price.comp
     ServiceConfigComponent,
     SvcitemConfigComponent,
     ServiceItemEditorComponent,
-    ServicePriceComponent 
+    ServicePriceComponent,
+    TestInstantiateComponent
   ]
 }) 
 export class ServicemgmtModule { }

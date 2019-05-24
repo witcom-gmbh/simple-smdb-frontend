@@ -8,6 +8,7 @@ import { FormBuilderService } from './form-builder.service';
 import { MockApiSearchService } from './mock-api-search.service'
 import { SmdbPartnerService } from './smdb-partner.service'
 import {NominatimService} from './Nominatim/nominatim.service';
+import { ServiceManagementService } from './service-management.service'
 
 export const API_INTERCEPTOR_PROVIDER: Provider = {
   provide: HTTP_INTERCEPTORS,
@@ -25,7 +26,8 @@ export const API_INTERCEPTOR_PROVIDER: Provider = {
     API_INTERCEPTOR_PROVIDER,
     MockApiSearchService,
     SmdbPartnerService,
-    NominatimService
+    NominatimService,
+    ServiceManagementService
   ],
   imports: [
     CommonModule
