@@ -45,8 +45,6 @@ export class DslRechercheService {
             formData.append('kls',addresse.kls.toString());
         }
 
-       
-    
         const options = {responseType: 'text' as 'text'};
  
         return this.http.post("https://apis.dev.witcom.services/dslrecherche/dslabfrage_wsss.php",formData,options)
