@@ -27,7 +27,7 @@ export class TestInstantiateComponent implements OnInit {
   
   createInstance(){
       
-      this.serviceMgmt.instantiateBusinessServiceFromProdukt(10227249,true).subscribe(
+      this.serviceMgmt.instantiateBusinessServiceFromProdukt(10371658,true).subscribe(
       response => {
           //Todo aus dem Service-Tree das Service-Element filtern, das aus dem Produkt instanziiert wurde
           console.log(response.serviceGroups[0].services[0].service.id); 
