@@ -49,7 +49,7 @@ export class TestInstantiateComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-    
+
     let portfolios:Array<String> = ["10195566"];
 
     this.productAutoComplete$ = this.autoCompleteControl.valueChanges.pipe(
@@ -100,8 +100,8 @@ export class TestInstantiateComponent implements OnInit {
           console.log(response.serviceGroups[0].services[0].service.id);
           let serviceItem:ServiceDto = response.serviceGroups[0].services[0].service;
           //update service item
-          serviceItem.description = "this is a test";
-          serviceItem.customProperties.properties[3].value="12345";
+          //serviceItem.description = "this is a test";
+          //serviceItem.customProperties.properties[3].value="12345";
 
           this.svcItemService.updateServiceItem(serviceItem).subscribe(updateRes => {
             let serviceId = updateRes.id;

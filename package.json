@@ -3,8 +3,9 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "npm run ng-swagger-gen && ng serve --host=0.0.0.0 --disable-host-check",
-    "build": "npm run ng-swagger-gen && ng build",
+    "config": "./node_modules/.bin/ts-node -O '{\"module\": \"commonjs\"}' ./set-env.ts",
+    "start": "npm run ng-swagger-gen && npm run config -- --environment=dev && ng serve --host=0.0.0.0 --disable-host-check --configuration=dev",
+    "build": "npm run ng-swagger-gen && npm run config -- --environment=prod && ng build --configuration=production",
     "test": "ng test",
     "ng-swagger-gen": "ng-swagger-gen",
     "lint": "ng lint",
@@ -64,6 +65,8 @@
     "typescript": "~3.1.1",
     "swagger-angular-generator": "^2.2.1",
     "flatted": "^2.0.0",
-    "swagger-parser": "^6.0.2"
+    "swagger-parser": "^6.0.2",
+    "dotenv": "^8.0.0",
+    "yargs": "^13.2.4"
   }
 }

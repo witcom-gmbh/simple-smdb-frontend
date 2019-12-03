@@ -4,21 +4,9 @@
 [ngClass]="[getClass('element', 'control'), getClass('grid', 'control')]"
                             (blur)="onBlur($event)"
                             (change)="onChange($event)"
-                            (focus)="onFocus($event)" 
+                            (focus)="onFocus($event)"
  [selectableBSAProducts]="model.selectableBSAProducts">
- 
- </dsl-abfrage>
-<!--
-<service-item-contacts [formControlName]="model.id"
-                            
-                            [ngClass]="[getClass('element', 'control'), getClass('grid', 'control')]"
-                            (blur)="onBlur($event)"
-                            (change)="onChange($event)"
-                            (focus)="onFocus($event)" 
-                            [itemId]="model.itemId"
-                            [requiredContactRoles]="model.requiredContactRoles">
-</service-item-contacts> 
 
--->
+ </dsl-abfrage>
 
 </ng-container>

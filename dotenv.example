@@ -1,0 +1,6 @@
+KEYCLOAK_SERVER_URL=https://KEYCLOAK-FQDN/auth
+KEYCLOAK_REALM=REALM
+KEYCLOAK_CLIENT_ID=a-client-id
+API_SMDB_URL=base-url-to-smdb-api
+API_URL=witcom-api-gateway
+
