@@ -22,7 +22,7 @@ import {
 import { DYNAMIC_FORM_CONTROL_MAP_FN } from "@ng-dynamic-forms/core";
 import {
     DynamicMaterialFormArrayComponent,
-    DynamicMaterialCheckboxComponent, 
+    DynamicMaterialCheckboxComponent,
     DynamicMaterialFormGroupComponent,
     DynamicMaterialDatePickerComponent,
     DynamicMaterialChipsComponent,
@@ -68,25 +68,39 @@ import { DslRechercheService } from "./dsl-abfrage/dsl-recherche.service";
 import { ServiceItemContactDFCComponent,DYNAMIC_FORM_CONTROL_TYPE_SVCITEMCONTACT } from './service-item-contact-dfc/service-item-contact-dfc.component';
 import { DynamicDSLAbfrageComponent,DYNAMIC_FORM_CONTROL_TYPE_DSLABFRAGE } from './dynamic-dslabfrage/dynamic-dslabfrage.component';
 
+export function getDFCComponent(model: DynamicFormControlModel): Type<DynamicFormControl>{
+
+  switch (model.type) {
+
+  case DYNAMIC_FORM_CONTROL_TYPE_SVCITEMCONTACT:
+    return ServiceItemContactDFCComponent;
+
+  case DYNAMIC_FORM_CONTROL_TYPE_DSLABFRAGE:
+      return DynamicDSLAbfrageComponent;
+  }
+
+}
+/*
 export const DFC_PROVIDER: Provider = {
   provide: DYNAMIC_FORM_CONTROL_MAP_FN,
   useValue: (model: DynamicFormControlModel): Type<DynamicFormControl> | null  => {
 
       switch (model.type) {
-        
+
         case DYNAMIC_FORM_CONTROL_TYPE_SVCITEMCONTACT:
           return ServiceItemContactDFCComponent;
-          
+
         case DYNAMIC_FORM_CONTROL_TYPE_DSLABFRAGE:
             return DynamicDSLAbfrageComponent;
         }
      }
-}
- 
+}*/
+
 @NgModule({
     entryComponents: [ServiceItemContactDFCComponent,DynamicDSLAbfrageComponent],
     providers: [
-        DFC_PROVIDER,
+        //DFC_PROVIDER,
+        {provide: DYNAMIC_FORM_CONTROL_MAP_FN,useValue:getDFCComponent},
         DslRechercheService,
         {provide: NG_VALIDATORS, useValue: serviceContactsValidator, multi: true}
 
@@ -97,11 +111,11 @@ export const DFC_PROVIDER: Provider = {
         RequiredContactRolesComponent,
         DslAbfrageComponent,
         DynamicDSLAbfrageComponent
-    ], 
+    ],
     imports: [
         CommonModule,
         ReactiveFormsModule,
-        FormsModule,      
+        FormsModule,
         MatNativeDateModule,
         MatCardModule,
         MatAutocompleteModule,
@@ -121,8 +135,8 @@ export const DFC_PROVIDER: Provider = {
         RequiredContactRolesComponent,
         ServiceItemContactDFCComponent,
         DslAbfrageComponent,
-        
-        
+
+
     ]
 })
 export class DfcModule { }

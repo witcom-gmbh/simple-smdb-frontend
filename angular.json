@@ -51,6 +51,14 @@
                   "maximumError": "5mb"
                 }
               ]
+            },
+            "dev": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.dev.ts"
+                }
+              ]
             }
           }
         },
@@ -62,6 +70,9 @@
           "configurations": {
             "production": {
               "browserTarget": "simple-smdb-frontend:build:production"
+            },
+            "dev": {
+              "browserTarget": "simple-smdb-frontend:build:dev"
             }
           }
         },
