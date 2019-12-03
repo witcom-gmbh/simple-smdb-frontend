@@ -38,6 +38,7 @@
     "ngx-alerts": "^3.4.0",
     "ngx-logger": "^3.3.9",
     "ngx-xml2json": "^1.0.2",
+    "reflect-metadata": "^0.1.13",
     "rxjs": "~6.3.3",
     "typy": "^3.0.0",
     "zone.js": "~0.8.26"
