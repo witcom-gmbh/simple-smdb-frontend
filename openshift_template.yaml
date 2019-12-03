@@ -1,0 +1,351 @@
+---
+apiVersion: v1
+kind: Template
+metadata:
+  annotations:
+    description: "Building SMDB-Demo-App"
+    iconClass: icon-jboss
+    tags: "nodejs, angular, web app"
+    template.openshift.io/provider-display-name: WiTCOM
+  name: angular-web-app
+objects:
+  -
+    apiVersion: v1
+    kind: ImageStream
+    metadata:
+      labels:
+        app: "${APP_NAME}"
+      name: "${APP_NAME}-builder"
+    spec: {}
+  -
+    apiVersion: v1
+    kind: ImageStream
+    metadata:
+      labels:
+        app: "${APP_NAME}"
+      name: "${APP_NAME}-runtime"
+    spec: {}
+  -
+    apiVersion: v1
+    kind: ImageStream
+    metadata:
+      labels:
+        app: "${APP_NAME}"
+      name: "${APP_NAME}-builder-runtime"
+    spec:
+      tags:
+        -
+          from:
+            kind: DockerImage
+            name: "nodeshift/centos7-s2i-web-app:latest"
+          name: latest
+  -
+    apiVersion: v1
+    kind: ImageStream
+    metadata:
+      labels:
+        app: "${APP_NAME}"
+      name: nginx-image-runtime
+    spec:
+      tags:
+        -
+          from:
+            kind: DockerImage
+            name: "centos/nginx-112-centos7:latest"
+          name: latest
+  -
+    apiVersion: v1
+    kind: BuildConfig
+    metadata:
+      labels:
+        app: "${APP_NAME}"
+      name: "${APP_NAME}-builder"
+    spec:
+      output:
+        to:
+          kind: ImageStreamTag
+          name: "${APP_NAME}-builder:latest"
+      postCommit: {}
+      resources: {}
+      source:
+        contextDir: "${SOURCE_REPOSITORY_DIR}"
+        git:
+          ref: "${SOURCE_REPOSITORY_REF}"
+          uri: "${SOURCE_REPOSITORY_URL}"
+        type: Git
+      strategy:
+        sourceStrategy:
+          env:
+            -
+              name: OUTPUT_DIR
+              value: "${OUTPUT_DIR}"
+            -
+              name: API_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: API_URL
+                  name: "${APP_NAME}-build"
+            -
+              name: API_SMDB_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: API_SMDB_URL
+                  name: "${APP_NAME}-build"
+            -
+              name: KEYCLOAK_REALM
+              valueFrom:
+                configMapKeyRef:
+                  key: KEYCLOAK_REALM
+                  name: "${APP_NAME}-build"
+            -
+              name: KEYCLOAK_CLIENT_ID
+              valueFrom:
+                configMapKeyRef:
+                  key: KEYCLOAK_CLIENT_ID
+                  name: "${APP_NAME}-build"
+            -
+              name: KEYCLOAK_SERVER_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: KEYCLOAK_SERVER_URL
+                  name: "${APP_NAME}-build"
+          from:
+            kind: ImageStreamTag
+            name: "${APP_NAME}-builder-runtime:latest"
+          incremental: true
+        type: Source
+      triggers:
+        -
+          github:
+            secret: "${GITHUB_WEBHOOK_SECRET}"
+          type: GitHub
+        -
+          type: ConfigChange
+        -
+          imageChange: {}
+          type: ImageChange
+    status:
+      lastVersion: 0
+  -
+    apiVersion: v1
+    kind: BuildConfig
+    metadata:
+      labels:
+        app: "${APP_NAME}"
+      name: "${APP_NAME}-runtime"
+    spec:
+      output:
+        to:
+          kind: ImageStreamTag
+          name: "${APP_NAME}-runtime:latest"
+      postCommit: {}
+      resources: {}
+      source:
+        images:
+          -
+            from:
+              kind: ImageStreamTag
+              name: "${APP_NAME}-builder:latest"
+            paths:
+              -
+                destinationDir: "."
+                sourcePath: /opt/app-root/output/.
+        type: Image
+      strategy:
+        sourceStrategy:
+          from:
+            kind: ImageStreamTag
+            name: "nginx-image-runtime:latest"
+          incremental: true
+        type: Source
+      triggers:
+        -
+          github:
+            secret: "${GITHUB_WEBHOOK_SECRET}"
+          type: GitHub
+        -
+          type: ConfigChange
+        -
+          imageChange: {}
+          type: ImageChange
+        -
+          imageChange:
+            from:
+              kind: ImageStreamTag
+              name: "${APP_NAME}-builder:latest"
+          type: ImageChange
+    status:
+      lastVersion: 0
+  -
+    apiVersion: v1
+    kind: DeploymentConfig
+    metadata:
+      labels:
+        app: "${APP_NAME}"
+      name: "${APP_NAME}"
+    spec:
+      replicas: 1
+      revisionHistoryLimit: 2
+      selector:
+        app: "${APP_NAME}"
+      strategy:
+        rollingParams:
+          timeoutSeconds: 3600
+        type: Rolling
+      template:
+        metadata:
+          labels:
+            app: "${APP_NAME}"
+        spec:
+          containers:
+            -
+              env:
+                -
+                  name: KUBERNETES_NAMESPACE
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.namespace
+              image: "${APP_NAME}-runtime"
+              imagePullPolicy: IfNotPresent
+              livenessProbe:
+                failureThreshold: 3
+                initialDelaySeconds: 5
+                periodSeconds: 10
+                successThreshold: 1
+                tcpSocket:
+                  port: 8080
+                timeoutSeconds: 1
+              name: "${APP_NAME}-runtime"
+              ports:
+                -
+                  containerPort: 8080
+                  name: http
+                  protocol: TCP
+              readinessProbe:
+                failureThreshold: 3
+                initialDelaySeconds: 5
+                periodSeconds: 10
+                successThreshold: 1
+                tcpSocket:
+                  port: 8080
+                timeoutSeconds: 1
+      triggers:
+        -
+          type: ConfigChange
+        -
+          imageChangeParams:
+            automatic: true
+            containerNames:
+              - "${APP_NAME}-runtime"
+            from:
+              kind: ImageStreamTag
+              name: "${APP_NAME}-runtime:latest"
+          type: ImageChange
+  -
+    apiVersion: v1
+    kind: Service
+    metadata:
+      labels:
+        app: "${APP_NAME}"
+      name: "${APP_NAME}"
+    spec:
+      ports:
+        -
+          name: http
+          port: 8080
+      selector:
+        app: "${APP_NAME}"
+  -
+    apiVersion: v1
+    kind: Route
+    metadata:
+      annotations:
+        kubernetes.io/tls-acme: "true"
+      labels:
+        app: "${APP_NAME}"
+      name: "${APP_NAME}"
+    spec:
+      host: "${ROUTE_FQDN}"
+      port:
+        targetPort: 8080
+      tls:
+        insecureEdgeTerminationPolicy: Allow
+        termination: edge
+      to:
+        kind: Service
+        name: "${APP_NAME}"
+      wildcardPolicy: None
+  -
+    apiVersion: v1
+    data:
+      API_SMDB_URL: "${API_SMDB_URL}"
+	  API_URL: "${API_URL}"
+      KEYCLOAK_REALM: "${KEYCLOAK_REALM}"
+      KEYCLOAK_CLIENT_ID: "${KEYCLOAK_CLIENT_ID}"
+      KEYCLOAK_SERVER_URL: "${KEYCLOAK_SERVER_URL}"
+    kind: ConfigMap
+    metadata:
+      labels:
+        app: "${APP_NAME}"
+      name: "${APP_NAME}-build"
+parameters:
+  -
+    description: "Application name"
+    displayName: "Application Name"
+    name: APP_NAME
+    required: true
+    value: demo-smdb-frontend
+  -
+    description: "Hostname fuer exponierten Service"
+    displayName: "FQDN fuer Route"
+    name: ROUTE_FQDN
+    required: true
+  -
+    description: "URL zu ID-Generator API"
+    displayName: "Die URL zur ID-Generator API"
+    name: API_SMDB_URL
+    required: true
+  -
+    description: Keycloak-Server-URL
+    displayName: "Die URL zur Keycloak-Instanz"
+    name: KEYCLOAK_SERVER_URL
+    required: true
+    value: "http://FQDN/auth"
+  -
+    displayName: Keycloak-Realm
+    name: KEYCLOAK_REALM
+    required: true
+  -
+    displayName: Keycloak-Client-ID
+    name: KEYCLOAK_CLIENT_ID
+    required: true
+  -
+    description: "The source URL for the application"
+    displayName: "Source URL"
+    name: SOURCE_REPOSITORY_URL
+    required: true
+  -
+    description: "The branch name for the application"
+    displayName: "Source Branch"
+    name: SOURCE_REPOSITORY_REF
+    required: true
+    value: master
+  -
+    description: "The location within the source repo of the application"
+    displayName: "Source Directory"
+    name: SOURCE_REPOSITORY_DIR
+    required: true
+    value: "."
+  -
+    description: "The location of the compiled static files from your web apps builder"
+    displayName: "Output Directory"
+    name: OUTPUT_DIR
+    required: false
+    value: build
+  -
+    description: "A secret string used to configure the GitHub webhook."
+    displayName: "GitHub Webhook Secret"
+    from: "[a-zA-Z0-9]{40}"
+    generate: expression
+    name: GITHUB_WEBHOOK_SECRET
+    required: true

@@ -7,7 +7,7 @@ export interface ContactTypeChip {
     name: string;
     displayName:any;
     color: string;
-    
+
 }
 
 @Component({
@@ -16,19 +16,19 @@ export interface ContactTypeChip {
   styleUrls: ['./required-contact-roles.component.css']
 })
 export class RequiredContactRolesComponent implements OnInit {
-    
+
     @Input() requiredContactTypes: ContactTypeDto[];
     @Input() selectedContactRelations:ContactRelationDto[];
-    
-    private requiredContactTypeChips: ContactTypeChip[] = [];
+
+    public requiredContactTypeChips: ContactTypeChip[] = [];
 
     constructor(
-        
+
     ) { }
 
     ngOnInit() {
     }
-  
+
     ngOnChanges() {
         var selectedTypes:string[];
         if ( this.selectedContactRelations !== undefined){
@@ -37,7 +37,7 @@ export class RequiredContactRolesComponent implements OnInit {
             this.requiredContactTypeChips = [];
             for (let role of this.requiredContactTypes) {
                 if (selectedTypes.find(t => t==role.name)){
-                    this.requiredContactTypeChips.push({name:role.name,displayName:role.displayName,color:'primary'});    
+                    this.requiredContactTypeChips.push({name:role.name,displayName:role.displayName,color:'primary'});
                 } else {
                     this.requiredContactTypeChips.push({name:role.name,displayName:role.displayName,color:'warn'});
                 }

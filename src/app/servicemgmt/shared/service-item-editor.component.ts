@@ -30,7 +30,7 @@ export class ServiceItemEditorComponent implements OnInit {
     formModel: DynamicFormModel;
     formGroup: FormGroup;
     requiredContactRoles:string[] = ['contactCommercial'];
-    private serviceItem:ServiceItemDto;
+    public serviceItem:ServiceItemDto;
     private itemAttributes:AttributeDto[]=null;
 
 

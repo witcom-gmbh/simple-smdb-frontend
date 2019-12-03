@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import {Subscription} from 'rxjs'; 
+import {Subscription} from 'rxjs';
 import { Location } from '@angular/common';
 import {ServiceItemService} from '../../services/service-item.service';
 import { AlertService } from 'ngx-alerts';
@@ -14,11 +14,11 @@ import { ServiceItemDto,ServiceDataSelectorDto,ServiceItemTreeDto } from '../../
   styleUrls: ['./service-config.component.css']
 })
 export class ServiceConfigComponent implements OnInit {
-    
+
     private svcItemId:number;
     private serviceId:number;
     private svcItem:ServiceItemDto;
-    private svcItemTree:ServiceItemTreeDto;
+    public svcItemTree:ServiceItemTreeDto;
     private selectedSvcItem:ServiceItemDto;
     private subscription:Subscription;
 
@@ -36,13 +36,13 @@ export class ServiceConfigComponent implements OnInit {
        .subscribe(item => {
            console.log(item);
            this.reloadTree();
-           }); 
+           });
   }
 
   getServiceItem():void{
      const id = +this.route.snapshot.paramMap.get('id');
      console.log('get service with id {}',id);
-     this.svcItemId=id; 
+     this.svcItemId=id;
      this.serviceId=id;
      this.svcItemService.getItemById(id).subscribe(response => {
        //console.log(response)
@@ -54,43 +54,43 @@ export class ServiceConfigComponent implements OnInit {
              this.svcItemTree=res;
              //console.log(res)
          });
-         
+
      });
-     
+
   }
-  
+
   onSelectServiceItem(svcItem:any):void{
-      console.log(svcItem._type); 
+      console.log(svcItem._type);
       this.svcItemId=this.svcItemService.getItemIdByObject(svcItem);
-      
+
       this.svcItemService.getItemByObject(svcItem).subscribe(
         response => {
             this.selectedSvcItem=response;
-            //console.log(response); 
+            //console.log(response);
         },
         err => {
            this.alertService.danger('Service-Element konnte nicht geladen werden');
         });
       /*
       this.svcItemService.getItemById(svcItem.id).subscribe(response => {
-         console.log(response); 
+         console.log(response);
       });*/
 
-      
+
       //this.selectedSvcItem=svcItem;
-      
+
   }
-  
+
   reloadTree(){
       this.svcItemService.getTreeById(this.svcItemId).subscribe(res =>
          {
              this.svcItemTree=res;
              //console.log(res)
          })
-      
-      
+
+
   }
-  
+
   ngOnDestroy() {
     // prevent memory leak when component is destroyed
     this.subscription.unsubscribe();

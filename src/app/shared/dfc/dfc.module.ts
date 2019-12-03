@@ -80,26 +80,10 @@ export function getDFCComponent(model: DynamicFormControlModel): Type<DynamicFor
   }
 
 }
-/*
-export const DFC_PROVIDER: Provider = {
-  provide: DYNAMIC_FORM_CONTROL_MAP_FN,
-  useValue: (model: DynamicFormControlModel): Type<DynamicFormControl> | null  => {
-
-      switch (model.type) {
-
-        case DYNAMIC_FORM_CONTROL_TYPE_SVCITEMCONTACT:
-          return ServiceItemContactDFCComponent;
-
-        case DYNAMIC_FORM_CONTROL_TYPE_DSLABFRAGE:
-            return DynamicDSLAbfrageComponent;
-        }
-     }
-}*/
 
 @NgModule({
     entryComponents: [ServiceItemContactDFCComponent,DynamicDSLAbfrageComponent],
     providers: [
-        //DFC_PROVIDER,
         {provide: DYNAMIC_FORM_CONTROL_MAP_FN,useValue:getDFCComponent},
         DslRechercheService,
         {provide: NG_VALIDATORS, useValue: serviceContactsValidator, multi: true}

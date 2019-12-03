@@ -8,13 +8,13 @@ import { KeycloakService, KeycloakAuthGuard } from 'keycloak-angular';
 })
 export class SimpleUserInfoComponent implements OnInit {
 
-    private userProfile:Keycloak.KeycloakProfile;
-    private loggedIn:boolean=false;
-    
+    public userProfile:Keycloak.KeycloakProfile;
+    public loggedIn:boolean=false;
+
   constructor(private keycloakAngular: KeycloakService) { }
 
   ngOnInit() {
-      
+
      this.keycloakAngular.isLoggedIn().then(res => {
          if (res){
             this.keycloakAngular.loadUserProfile().then(res => {

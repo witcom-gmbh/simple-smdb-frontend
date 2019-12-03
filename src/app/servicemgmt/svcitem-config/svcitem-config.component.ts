@@ -12,10 +12,10 @@ export class SvcitemConfigComponent implements OnInit,OnChanges {
 
   @Input() svcItem:ServiceItemDto;
   private itemAttributes:Array<AttributeDto>;
-  private svcItemForm={};
-  private attributeSubmission={'data':{}};
+  public svcItemForm={};
+  public attributeSubmission={'data':{}};
   private formBuilderService:FormBuilderService
-  
+
   constructor(
     private svcItemService:ServiceItemService,
     //private formBuilderService:FormBuilderService
@@ -26,20 +26,20 @@ export class SvcitemConfigComponent implements OnInit,OnChanges {
   ngOnInit() {
       //console.log('in item',this.svcItem);
   }
-  
+
   ngOnChanges() {
       //getItemAttributes
     console.log('change in item',this.svcItem);
     this.getAttributes();
     //this.svcItemService.reloadBS(12);
     //this.getForm();
-  } 
-  
+  }
+
   getAttributes(){
       this.svcItemService.getItemAttributes(this.svcItem.id).subscribe(res => {
           this.itemAttributes = res;
           console.log(res);
-          
+
           /*
           this.formBuilderService.testObservable().subscribe(res => {
             console.log("dummy observable",res);
@@ -47,31 +47,31 @@ export class SvcitemConfigComponent implements OnInit,OnChanges {
           err => {console.error('my error')});
           */
 
-          
+
           let formSpec = this.formBuilderService.buildServiceItemAttributeForm(this.itemAttributes);
           this.svcItemForm=formSpec.formDefinition;
           this.attributeSubmission=formSpec.submission;
         });
-      
+
   }
-  
+
   updateSvcItem(submission:any):void{
-      console.log(submission.data); 
+      console.log(submission.data);
       this.svcItemService.modifyServiceItem(this.svcItem,
       this.formBuilderService.buildModifiedAttributesFromFormData(this.itemAttributes,submission.data)).subscribe(res => {
           console.log("Update ok");
           }, err => {console.error(err);}
       );
-      
+
   }
-  
+
   onSvcItemUpdateFormEvent(submission: any) {
     if (submission.type!==null && submission.type!==undefined){
       switch(submission.type) {
         case "testEvent":
             //this.onTest(submission);
             break;
-        case "updateSvcItem": 
+        case "updateSvcItem":
             this.updateSvcItem(submission);
             break;
         default:
@@ -84,7 +84,7 @@ export class SvcitemConfigComponent implements OnInit,OnChanges {
   getItemFriendlyName():string{
      if (this.svcItem.roleDisplayName !== null){
          return this.svcItem.roleDisplayName;
-     } 
+     }
      return this.svcItem.displayName;
   }*/
 
