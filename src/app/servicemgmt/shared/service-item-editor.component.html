@@ -1,29 +1,33 @@
 <div *ngIf="serviceItem">
-<h3>{{ serviceItem| svcItemDisplayName }}</h3>
+<!--
+<h3>{{ serviceItem | svcItemDisplayName }}</h3>
+-->
+<mat-form-field class="example-full-width">
+    <input matInput placeholder="Servicebezeichnung" [(ngModel)]="serviceItem.displayName" >
+  </mat-form-field>
 <div *ngIf="formGroup">
 <form [formGroup]="formGroup">
- 
 
     <dynamic-material-form [group]="formGroup" [model]="formModel" (blur)="onBlur($event)"
                                    (change)="onChange($event)"
                                    (focus)="onFocus($event)"
 (matEvent)="onMatEvent($event)">
- 
+
 <ng-template modelId="switchMultiplicity" align="START">
-        
-            <p><b>Service-Optionen</b></p> 
-            
+
+            <p><b>Service-Optionen</b></p>
+
         </ng-template>
 
 </dynamic-material-form>
- 
+
 <div class="col-2">
 <button type="button" class="btn btn-default"  (click)="updateServiceItem()">Speichern</button>
-</div>        
-                            
+</div>
+
 </form>
 
-<pre>{{formGroup.status  | json}}</pre> 
+<pre>{{formGroup.status  | json}}</pre>
 
 </div>
 

@@ -26,14 +26,14 @@ import { ServiceItemFormBuilder} from './service-item-form-builder.service'
 export class ServiceItemEditorComponent implements OnInit {
 
     @Input() itemId:number;
-    
+
     formModel: DynamicFormModel;
     formGroup: FormGroup;
     requiredContactRoles:string[] = ['contactCommercial'];
     private serviceItem:ServiceItemDto;
     private itemAttributes:AttributeDto[]=null;
-    
-    
+
+
     constructor(
         private formService: DynamicFormService,
         private alertService: AlertService,
@@ -45,14 +45,14 @@ export class ServiceItemEditorComponent implements OnInit {
 
     ngOnInit() {
     }
-  
+
     ngOnChanges() {
 
-       
+
         this.formModel = [];
         this.serviceItemFormBuilder.setServiceTransition("toOffered");
-        
-        //console.log(this.formModel); 
+
+        //console.log(this.formModel);
         this.servicItemService.getItemById(this.itemId).subscribe(
         response => {
             this.serviceItem=response;
@@ -63,7 +63,7 @@ export class ServiceItemEditorComponent implements OnInit {
                 this.servicItemService.getChildrenMultiplicity(this.serviceItem.id)
             )
             .subscribe(([itemAttributes,contactRelations,childrenMultiplicity]) => {
-                this.itemAttributes = itemAttributes; 
+                this.itemAttributes = itemAttributes;
                 this.serviceItemFormBuilder.setServiceItem(this.serviceItem);
                 this.serviceItemFormBuilder.setServiceItemAttributes(this.itemAttributes);
                 this.serviceItemFormBuilder.setServiceItemContactRelations(contactRelations)
@@ -86,7 +86,7 @@ export class ServiceItemEditorComponent implements OnInit {
                     console.log(err);
                     this.alertService.danger('Eingabemaske konnte nicht erstellt werden');
                 });
-                
+
             },
             err => {
                     console.log("Error getting ItemAttributes & Contact-Relations",err);
@@ -99,12 +99,12 @@ export class ServiceItemEditorComponent implements OnInit {
            console.log(err);
            //this.messageService.add(err)
         });
-        
 
-      
+
+
     }
-    
-    getFormValidationErrors() { 
+
+    getFormValidationErrors() {
   Object.keys(this.formGroup.controls).forEach(key => {
 
   const controlErrors: ValidationErrors = this.formGroup.get(key).errors;
@@ -115,11 +115,12 @@ export class ServiceItemEditorComponent implements OnInit {
       }
     });
   }
-    
+
     updateServiceItem(){
         //validierungen ?
-       //console.log(this.formGroup); 
+       console.log(this.serviceItem.displayName);
        let modifiedItem = this.serviceItemFormBuilder.getUpdatedServiceItemFromModel(this.formModel);
+       modifiedItem.displayName = this.serviceItem.displayName;
        let modifiedAttributes = this.serviceItemFormBuilder.getUpdatedAttributesFromModel(this.formModel);
        this.servicItemService.modifyServiceItem(modifiedItem,modifiedAttributes).subscribe(res => {
            console.log("Contact-Relation", this.formGroup.value.serviceitem_contactRelation);
@@ -131,16 +132,16 @@ export class ServiceItemEditorComponent implements OnInit {
             this.alertService.success('Service-Element wurde aktualisiert');
             }, err => {console.error(err);
           }
-            
+
             );*/
-           
-          
+
+
           }, err => {
               console.error(err);
               this.alertService.warning('Service-Element konnte nicht aktualisiert werden');
           }
         );
-            
+
         /*
         forkJoin(
             this.servicItemService.updateServiceItem(this.serviceItemFormBuilder.getUpdatedServiceItemFromModel(this.formModel)),
@@ -149,8 +150,8 @@ export class ServiceItemEditorComponent implements OnInit {
                 //notify
                 this.servicItemService.reloadBS(svcItem1.owningBusinessServiceId);
                 this.servicItemService.notifySvcItemUpdate(svcItem1.id);
-                
-                
+
+
             },
             err => {
                     console.log(err);
@@ -159,9 +160,9 @@ export class ServiceItemEditorComponent implements OnInit {
         );*/
 
     }
-    
+
     updateServiceItemSimpleMultiplicity(childAssocName:string,multiplicity:number,oldMultiplicity:number){
-        
+
         this.servicItemService.modifyServiceItemMultiplicity(this.serviceItem.id,childAssocName,multiplicity)
         .subscribe(res => {
             this.servicItemService.reloadBS(this.serviceItem.owningBusinessServiceId);
@@ -171,7 +172,7 @@ export class ServiceItemEditorComponent implements OnInit {
             //revert switch
         })
     }
-    
+
     onBlur($event) {
         console.log(`Material blur event on: ${$event.model.id}: `, $event);
     }
@@ -181,9 +182,9 @@ export class ServiceItemEditorComponent implements OnInit {
         if (t($event,'model.additional.multiplicitySwitch').safeBoolean) {
             //console.log("MP switch ",$event.control.value);
             if($event.control.value){
-              this.updateServiceItemSimpleMultiplicity($event.model.id,1,0);  
+              this.updateServiceItemSimpleMultiplicity($event.model.id,1,0);
             } else {
-              this.updateServiceItemSimpleMultiplicity($event.model.id,0,1);    
+              this.updateServiceItemSimpleMultiplicity($event.model.id,0,1);
             }
             //this.updateServiceItemSimpleMultiplicity()
         }

@@ -45,3 +45,13 @@ dynamic-material-form-control dynamic-material-form-group + mat-error {
 dynamic-material-form-control .mat-list-item {
     justify-content: center;
 }
+
+.example-form {
+  min-width: 150px;
+  max-width: 750px;
+  width: 100%;
+}
+
+.example-full-width {
+  width: 100%;
+}

@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 
 import { MAT_CHIPS_DEFAULT_OPTIONS, MatCardModule, MatNativeDateModule,MatAutocompleteModule,MatFormFieldModule,
   MatInputModule,MatSelectModule,MatChipsModule } from "@angular/material";
+import { AppMaterialModule } from '../shared/app-material.module';
+
 import { DynamicFormsCoreModule } from "@ng-dynamic-forms/core";
 import { DynamicFormsMaterialUIModule } from "@ng-dynamic-forms/ui-material";
 
@@ -20,12 +22,17 @@ import { ServiceItemEditorComponent } from './shared/service-item-editor.compone
 import { FormTestComponent } from './form-test/form-test.component';
 //import { ServiceItemContactsComponent} from '../shared/dfc/dfc';
 import { DfcModule } from '../shared/dfc/dfc';
-import { ServicePriceComponent } from './shared/service-price/service-price.component'
+
+import { ServicePriceComponent } from './shared/service-price/service-price.component';
+import { TestInstantiateComponent } from './shared/test-instantiate/test-instantiate.component';
+import { SimpleServiceSearchComponent } from './shared/simple-service-search/simple-service-search.component'
 @NgModule({
-    
+
   declarations: [ServiceConfigComponent, SvcitemConfigComponent, ServiceItemEditorComponent,
     FormTestComponent,
     ServicePriceComponent,
+    TestInstantiateComponent,
+    SimpleServiceSearchComponent,
     ],
   imports: [
     CommonModule,
@@ -34,6 +41,7 @@ import { ServicePriceComponent } from './shared/service-price/service-price.comp
     FormioModule,
     DynamicFormsCoreModule,
     DynamicFormsMaterialUIModule,
+    AppMaterialModule,
     /*
     MatNativeDateModule,
     MatCardModule,
@@ -44,7 +52,9 @@ import { ServicePriceComponent } from './shared/service-price/service-price.comp
     ServiceConfigComponent,
     SvcitemConfigComponent,
     ServiceItemEditorComponent,
-    ServicePriceComponent 
+    ServicePriceComponent,
+    TestInstantiateComponent,
+    SimpleServiceSearchComponent
   ]
-}) 
+})
 export class ServicemgmtModule { }

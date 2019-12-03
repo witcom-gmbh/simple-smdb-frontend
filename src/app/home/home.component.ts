@@ -7,8 +7,9 @@ import { Component, OnInit } from '@angular/core';
 })
 export class HomeComponent implements OnInit {
 
+
   private svcId:string = "10210952";
-  
+
   constructor() { }
 
   ngOnInit() {

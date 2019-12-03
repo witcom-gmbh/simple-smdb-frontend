@@ -12,6 +12,7 @@ import { AppRoutingModule } from './app-routing.module';
 import { FormioModule, FormioAppConfig } from 'angular-formio';
 import { ServicesModule } from './services/services.module';
 import { SharedModule } from './shared/shared.module';
+import { AppMaterialModule } from './shared/app-material.module';
 import { ServicemgmtModule } from './servicemgmt/servicemgmt.module';
 import { HomeComponent } from './home/home.component';
 import { DfcModule } from './shared/dfc/dfc'
@@ -22,6 +23,8 @@ import { KeycloakAngularModule, KeycloakService } from 'keycloak-angular';
 import { AppAuthGuard } from './app.authguard';
 import { initializer } from './utils/app-init';
 
+
+//import { FlexLayoutModule } from '@angular/flex-layout';
 
 /*
 import { ReactiveFormsModule } from '@angular/forms';
@@ -47,7 +50,7 @@ export const KEYCLOAK_PROVIDER: Provider = {
 
 
 @NgModule({
-    
+
   declarations: [
     AppComponent,
     HomeComponent
@@ -62,6 +65,7 @@ export const KEYCLOAK_PROVIDER: Provider = {
     SharedModule,
     ServicemgmtModule,
     DfcModule,
+    AppMaterialModule,
     LoggerModule.forRoot(environment.loggerConfig),
     KeycloakAngularModule,
     AlertModule.forRoot({maxMessages: 5, timeout: 5000, position: 'right'})
