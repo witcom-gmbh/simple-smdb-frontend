@@ -221,6 +221,10 @@ objects:
                   containerPort: 8080
                   name: http
                   protocol: TCP
+              volumeMounts:
+                - mountPath: /etc/opt/rh/rh-nginx112/nginx/nginx.conf
+                  name: nginx-config
+                  subPath: nginx.conf
               readinessProbe:
                 failureThreshold: 3
                 initialDelaySeconds: 5
@@ -229,6 +233,11 @@ objects:
                 tcpSocket:
                   port: 8080
                 timeoutSeconds: 1
+          volumes:
+            - configMap:
+                defaultMode: 420
+                name: ${APP_NAME}-nginx-runtime-config
+              name: nginx-config
       triggers:
         -
           type: ConfigChange
@@ -288,6 +297,16 @@ objects:
       labels:
         app: "${APP_NAME}"
       name: "${APP_NAME}-build"
+  -
+    apiVersion: v1
+    data:
+      nginx.conf: "worker_processes auto;\nerror_log /var/opt/rh/rh-nginx112/log/nginx/error.log;\npid /var/opt/rh/rh-nginx112/run/nginx/nginx.pid;\n\n# Load dynamic modules. See /opt/rh/rh-nginx112/root/usr/share/doc/README.dynamic.\ninclude /opt/rh/rh-nginx112/root/usr/share/nginx/modules/*.conf;\n\nevents {\n    worker_connections  1024;\n}\n\nhttp {\n    log_format  main  '$remote_addr - $remote_user [$time_local] \"$request\" '\n                      '$status $body_bytes_sent \"$http_referer\" '\n                      '\"$http_user_agent\" \"$http_x_forwarded_for\"';\n\n    access_log  /var/opt/rh/rh-nginx112/log/nginx/access.log  main;\n\n    sendfile        on;\n    tcp_nopush      on;\n    tcp_nodelay     on;\n    keepalive_timeout  65;\n    types_hash_max_size 2048;\n\n    include       /etc/opt/rh/rh-nginx112/nginx/mime.types;\n    default_type  application/octet-stream;\n\n    # Load modular configuration files from the /etc/nginx/conf.d directory.\n    # See http://nginx.org/en/docs/ngx_core_module.html#include\n    # for more information.\n    include /opt/app-root/etc/nginx.d/*.conf;\n\n    server {\n        listen       8080 default_server;\n        listen       [::]:8080 default_server;\n        server_name  _;\n        root         /opt/app-root/src;\n\n        # Load configuration files for the default server block.\n        include      /opt/app-root/etc/nginx.default.d/*.conf;\n\n        location / {\n\t\t  try_files $uri /index.html?$args;\n        }\n\n        error_page 404 /404.html;\n        location = /40x.html {\n        }\n\n        error_page 500 502 503 504  /50x.html;\n        location = /50x.html {\n        }\n\n    }\n\n}"
+    kind: ConfigMap
+    metadata:
+      labels:
+        app: "${APP_NAME}"
+      name: "${APP_NAME}-nginx-runtime-config"
+
 parameters:
   -
     description: "Application name"
