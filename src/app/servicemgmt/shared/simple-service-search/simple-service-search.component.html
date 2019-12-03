@@ -1,0 +1,22 @@
+<form class="example-form">
+  <div class="row align-items-center" style="padding-left:15px;">
+<div class="col-8">
+    <mat-form-field>
+    <input [formControl]="autoCompleteControl" type="text" placeholder="Service suchen..." aria-label="Number" matInput [matAutocomplete]="auto">
+    <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete" [displayWith]="displayFn">
+      <mat-option *ngFor="let service of serviceAutoComplete$ | async; let index = index" [value]="service">
+        {{ service.displayName }} - {{ service.description }}
+      </mat-option>
+    </mat-autocomplete>
+    <button mat-button mat-icon-button matSuffix (click)="clearSearchField()" *ngIf="autoCompleteControl.value">
+        <mat-icon>close</mat-icon>
+    </button>
+
+  </mat-form-field>
+</div>
+<div class="col-4">
+  <button type="button" class="btn btn-primary"  [disabled]="!autoCompleteControl.value" (click)="openService()">Details</button>
+</div>
+
+</div>
+</form>
