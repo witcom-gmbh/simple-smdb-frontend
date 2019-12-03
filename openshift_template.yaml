@@ -45,7 +45,7 @@ objects:
     metadata:
       labels:
         app: "${APP_NAME}"
-      name: nginx-image-runtime
+      name: ${APP_NAME}-nginx-image-runtime
     spec:
       tags:
         -
@@ -155,7 +155,7 @@ objects:
         sourceStrategy:
           from:
             kind: ImageStreamTag
-            name: "nginx-image-runtime:latest"
+            name: "${APP_NAME}-nginx-image-runtime:latest"
           incremental: true
         type: Source
       triggers:
@@ -279,7 +279,7 @@ objects:
     apiVersion: v1
     data:
       API_SMDB_URL: "${API_SMDB_URL}"
-	  API_URL: "${API_URL}"
+      API_URL: "${API_URL}"
       KEYCLOAK_REALM: "${KEYCLOAK_REALM}"
       KEYCLOAK_CLIENT_ID: "${KEYCLOAK_CLIENT_ID}"
       KEYCLOAK_SERVER_URL: "${KEYCLOAK_SERVER_URL}"
@@ -301,8 +301,8 @@ parameters:
     name: ROUTE_FQDN
     required: true
   -
-    description: "URL zu ID-Generator API"
-    displayName: "Die URL zur ID-Generator API"
+    description: "URL zu SMDB API"
+    displayName: "Die URL zur SMDB API"
     name: API_SMDB_URL
     required: true
   -
@@ -310,7 +310,7 @@ parameters:
     displayName: "Die URL zur Keycloak-Instanz"
     name: KEYCLOAK_SERVER_URL
     required: true
-    value: "http://FQDN/auth"
+    value: "https://FQDN/auth"
   -
     displayName: Keycloak-Realm
     name: KEYCLOAK_REALM
@@ -324,6 +324,7 @@ parameters:
     displayName: "Source URL"
     name: SOURCE_REPOSITORY_URL
     required: true
+    value: "https://github.com/witcom-gmbh/simple-smdb-frontend.git"
   -
     description: "The branch name for the application"
     displayName: "Source Branch"
@@ -341,7 +342,7 @@ parameters:
     displayName: "Output Directory"
     name: OUTPUT_DIR
     required: false
-    value: build
+    value: "dist/simple-smdb-frontend"
   -
     description: "A secret string used to configure the GitHub webhook."
     displayName: "GitHub Webhook Secret"
