@@ -6,7 +6,7 @@ import { LoggerModule } from 'ngx-logger';
 import { AppComponent } from './app.component';
 import { ApiConfiguration } from './api/api-configuration';
 import { ApiModule } from './api/api.module';
-import { initApiConfiguration } from './utils/smdb-init';
+import { initSMDBApiConfiguration } from './utils/smdb-init';
 import { formioConfiguration } from './utils/formio-config';
 import { AppRoutingModule } from './app-routing.module';
 import { FormioModule, FormioAppConfig } from 'angular-formio';
@@ -34,12 +34,15 @@ import { DynamicFormsMaterialUIModule } from "@ng-dynamic-forms/ui-material";
 */
 
 
-export const INIT_API_CONFIGURATION: Provider = {
+
+
+export const INIT_SMDB_CONFIGURATION: Provider = {
   provide: APP_INITIALIZER,
-  useFactory: initApiConfiguration,
+  useFactory: initSMDBApiConfiguration,
   deps: [ApiConfiguration],
   multi: true
 };
+
 
 export const KEYCLOAK_PROVIDER: Provider = {
     provide: APP_INITIALIZER,
@@ -70,7 +73,7 @@ export const KEYCLOAK_PROVIDER: Provider = {
     KeycloakAngularModule,
     AlertModule.forRoot({maxMessages: 5, timeout: 5000, position: 'right'})
   ],
-  providers: [INIT_API_CONFIGURATION,KEYCLOAK_PROVIDER,{provide: FormioAppConfig, useValue: formioConfiguration}],
+  providers: [INIT_SMDB_CONFIGURATION,KEYCLOAK_PROVIDER,{provide: FormioAppConfig, useValue: formioConfiguration}],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
