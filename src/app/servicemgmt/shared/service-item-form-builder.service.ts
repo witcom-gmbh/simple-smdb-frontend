@@ -72,7 +72,7 @@ export class ServiceItemFormBuilder {
                 this.buildValidationRules();
                 let f = new UserVisibleAttributeFilterPipe();
                 for (let attribute of f.transform(this.itemAttributes)){
-                  //console.log(attribute);
+                  console.log(attribute);
                   switch(attribute._type){
                       case "AttributeEnumDto":
                         //formSpec.formDefinition.components.push(this.getEnumAttributeComponent(attribute));
@@ -603,7 +603,7 @@ export class ServiceItemFormBuilder {
 
   public buildValidationRules(){
         this.requiredContactTypes=[];
-        this.attributeValidationRules = null;
+        this.attributeValidationRules = [];
 
         let configProp = this.getProductItemCustomPropertyByName(this.serviceItem.productItem,"extendedConfiguration");
         if (configProp===undefined){
