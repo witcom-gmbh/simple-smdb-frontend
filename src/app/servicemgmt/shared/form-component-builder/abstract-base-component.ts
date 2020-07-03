@@ -19,28 +19,28 @@ import { UserVisibleAttributeFilterPipe,SplTranslatePipe } from '../../../shared
 
 
 export abstract class AbstractBaseComponent {
-    
+
     protected attribute:any;
     protected itemAttributes:Array<any>;
     protected serviceItem:ServiceItemDto;
     protected attributeValueHandler:ValueHandler;
-    
+
     constructor(attribute:AttributeDto,itemAttributes:Array<any>,serviceItem:ServiceItemDto){
         //console.log(serviceItem);
         this.attribute = attribute;
         this.serviceItem = serviceItem;
         this.itemAttributes = itemAttributes;
-    } 
-    
+    }
+
     AttributeValueHandler(handler:ValueHandler){
         this.attributeValueHandler=handler;
         return this;
     }
-    
+
     protected getAttributeValueHandler():ValueHandler{
         if(!t(this.attributeValueHandler).isNullOrUndefined){
-            
-            return this.attributeValueHandler; 
+
+            return this.attributeValueHandler;
         }
         //Return Default-Handlers depending on Attribute-Type
         switch(this.attribute._type){
@@ -48,23 +48,25 @@ export abstract class AbstractBaseComponent {
                 return ValueHandler.DEFAULT_ENUM_HANDLER;
             case "AttributeStringDto":
                 return ValueHandler.DEFAULT_STRING_HANDLER;
+            case "AttributeDecimalDto":
+                return ValueHandler.DEFAULT_NUMBER_HANDLER;
         }
-        return; 
-        
+        return;
+
     }
-    
+
     abstract getDynamicModel():DynamicFormValueControlModel<any>;
     //abstract getComponent():BaseComponent;
     abstract getFormValue():any;
-    
+
     getLabel():string{
         let f = new SplTranslatePipe();
         return f.transform(this.attribute.attributeDef.attributeDef.displayName);
     }
-    
+
     getDescription():string{
         let f = new SplTranslatePipe();
-        return f.transform(this.attribute.attributeDef.attributeDef.description);        
+        return f.transform(this.attribute.attributeDef.attributeDef.description);
     }
 
     /**
@@ -73,7 +75,7 @@ export abstract class AbstractBaseComponent {
     canChangeAttribute():boolean{
         if (this.attribute.attributeDef.attributeDef.readonly === true){
             return false;
-            
+
         }
         //Nur bei funktionalen attributen
         if(this.attribute.attributeDef.attributeDef.functionalType === "FUNCTIONAL"){
@@ -90,54 +92,56 @@ export abstract class AbstractBaseComponent {
      * Get Value-Object of EnumAttribute by Value-Systemname
      */
     getEnumAttributeValueByValue(value:string){
-        return this.attribute.attributeDef.attributeType.values.find(a => a.value === value);      
+        return this.attribute.attributeDef.attributeType.values.find(a => a.value === value);
     }
-    
+
     /**
      * Get all EnumAttributeValues on an attribute
-     * 
+     *
      */
     getEnumAttributeValues(){
         //console.log(attribute.attributeDef.attributeType.values);
         return this.attribute.attributeDef.attributeType.values;
     }
-    
+
     /**
      * Get custom property of attribute by propertyName
-     * 
+     *
      */
     getCustomPropertyByName(propertyName:string):CustomPropertyDto{
         let customProperties:any = this.attribute.attributeDef.attributeDef.customProperties;
         return customProperties.properties.find(i => i.name === propertyName);
     }
-    
+
     /**
      * Cheks if Attribute-Value is stored as JSON
-     * 
+     *
      */
     isAttributeStoredAsJSON():boolean{
         let filterProperty:CustomPropertyDto = this.getCustomPropertyByName('attributeStoredAsJson');
-        if(filterProperty!==null){
+        console.log("filterproperty ",filterProperty);
+        //if(!t(filterProperty).isNullOrUndefined){
+        if(!t(filterProperty,'value').isNullOrUndefined){
               if(filterProperty.value==='true'){
                   return true;
               }
         }
         return false;
     }
-    
+
     /**
      * Checks if attribute is required for service-item-status
-     * 
+     *
      */
     isAttributeRequiredForStatus(status:string):boolean{
         let filterProperty:CustomPropertyDto = this.getCustomPropertyByName('attributeRequiredForStatus');
-        if(filterProperty!==null){
+        if(!t(filterProperty,'value').isNullOrUndefined){
               if(filterProperty.value===status){
                   return true;
               }
-        
+
           }
         return false;
     }
-    
+
 }

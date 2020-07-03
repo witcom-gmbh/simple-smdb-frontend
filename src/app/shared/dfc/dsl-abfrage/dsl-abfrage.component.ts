@@ -25,8 +25,8 @@ export interface NominatimAddress {
     postcode:string;
     city:string;
     displayName:string;
-    
-    
+
+
 }
 
 export interface DSLAbfrageProdukt {
@@ -69,37 +69,38 @@ export class MyErrorStateMatcher implements ErrorStateMatcher {
   templateUrl: './dsl-abfrage.component.html',
   styleUrls: ['./dsl-abfrage.component.css'],
   providers: [
-    { 
+    {
       provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => DslAbfrageComponent), 
+      useExisting: forwardRef(() => DslAbfrageComponent),
       multi: true
     }
-  ] 
+  ]
 })
 export class DslAbfrageComponent implements ControlValueAccessor, OnInit {
-    
-    abfrageResult:DSLAbfrageResult=null; 
+
+    abfrageResult:DSLAbfrageResult=null;
+    @Input() defaultOption:String=null;
     adressSearchControl = new FormControl();
-    availableBSAProducts:Array<any>=[]; 
+    availableBSAProducts:Array<any>=[];
     controlDisabled:boolean=false;
-   
+
     filteredAddresses : Observable<Array<GeocodeResponse>>;
-    
+
     rechercheAdvanced:boolean=false;
     rechercheAddress : DSLRechercheAdresse = null;
-    rechercheRunning:boolean=false;    
-    
+    rechercheRunning:boolean=false;
+
     rechercheRefined:boolean=false;
     rechercheRefinedAddressList:Array<any>=[];
-    
+
     productAddress : DSLRechercheAdresse = null;
- 
+
     selectedAddress : GeocodeResponse = null;
     selectedBSAProduct = null;
     selectedBSAProductAddress : DSLRechercheAdresse = null;
-    
+
     @Input() selectableBSAProducts:Array<DSLAbfrageProdukt>;
-    
+
     //Input-Controls
     strasseFormControl = new FormControl('', [
         Validators.required,
@@ -123,7 +124,7 @@ export class DslAbfrageComponent implements ControlValueAccessor, OnInit {
     klsFormControl = new FormControl('',[
         Validators.pattern(/^-?(0|[1-9]\d*)?$/)
     ]);
-     
+
     matcher = new MyErrorStateMatcher();
 
     constructor(
@@ -134,7 +135,7 @@ export class DslAbfrageComponent implements ControlValueAccessor, OnInit {
 
     ngOnInit() {
         //this.availableBSAProducts=[ { "materialnummer": "89800055", "produktoption": "bsa100_40", "produktoptionName": "100/40 MBit/s" }, { "materialnummer": "89742311", "produktoption": "bsa25_5", "produktoptionName": "25/5 MBit/s" }, { "materialnummer": "89743558", "produktoption": "bsa16_1", "produktoptionName": "16/1 MBit/s" } ];
-        
+
         this.filteredAddresses = this.adressSearchControl.valueChanges.pipe(
           startWith(<string|NominatimAddress>''),
           // delay emits
@@ -144,9 +145,9 @@ export class DslAbfrageComponent implements ControlValueAccessor, OnInit {
               //let val = value as string;
             if (value !== '') {
                 if (typeof value === 'string'){
-                   return this.lookupAddress(value); 
+                   return this.lookupAddress(value);
                 } else {
-                   return  of([value]); 
+                   return  of([value]);
                 }
             } else {
                 this.adressSearchControl.setValue(null);
@@ -154,11 +155,11 @@ export class DslAbfrageComponent implements ControlValueAccessor, OnInit {
             }
           })
          );
-      
+
     }
-    
+
     displayAddressFn(response?: NominatimAddress): string | undefined {
-        
+
         if (response){
             if(response.city === undefined){
                 response.city = "";
@@ -170,14 +171,14 @@ export class DslAbfrageComponent implements ControlValueAccessor, OnInit {
             return displayString;
         } else {
             return undefined;
-            
+
         }
-        
-        
+
+
         //return response ? response.address.road + ' ' + response.address.house_number +', '+ response.address.postcode + ' ' + response.address.city  : undefined;
     }
 
-    
+
     lookupAddress(value: string): Observable<NominatimAddress> {
         return this.nominatimService.addressSearch(value.toLowerCase()).pipe(
             map(res => {
@@ -193,7 +194,7 @@ export class DslAbfrageComponent implements ControlValueAccessor, OnInit {
                     if (addr.address.hamlet !==undefined && !simpleAddr.city ) {simpleAddr.city=addr.address.hamlet};
                     return simpleAddr;}
                 )
-                //console.log(res); 
+                //console.log(res);
                 //return res;
             }),
           // catch errors
@@ -202,9 +203,9 @@ export class DslAbfrageComponent implements ControlValueAccessor, OnInit {
           })
         );
     }
-    
+
     lookupDSLProdukt(){
-        if (!this.rechercheAddressValid()){ 
+        if (!this.rechercheAddressValid()){
             //console.log("Recherche-Adresse ungültig");
             this.alertService.warning("Recherche-Adresse ungültig");
             return;
@@ -224,7 +225,7 @@ export class DslAbfrageComponent implements ControlValueAccessor, OnInit {
         addr.plz=this.plzFormControl.value;
         addr.hausnummernzusatz=this.hausnummerzusatzFormControl.value;
         addr.kls=this.klsFormControl.value;
-        
+
         this.availableBSAProducts=[];
         this.rechercheRefinedAddressList=[];
         this.rechercheRunning=true;
@@ -233,7 +234,7 @@ export class DslAbfrageComponent implements ControlValueAccessor, OnInit {
             console.log(response);
             if (response.hasOwnProperty('error')){
                this.alertService.warning("DSL-Recherche-Fehler");
-               //this.messageService.add(response.error); 
+               //this.messageService.add(response.error);
             } else {
                 //
                 this.parseRechercheResult(response);
@@ -245,31 +246,31 @@ export class DslAbfrageComponent implements ControlValueAccessor, OnInit {
             //this.messageService.add(err);
             this.alertService.warning("DSL-Recherche-Fehler");
             this.rechercheRunning=false;}
-        );        
+        );
     }
-    
+
     rechercheAddressValid():boolean{
         if (this.strasseFormControl.errors){return false;}
         if (this.hausnummerFormControl.errors){return false;}
         if (this.hausnummerzusatzFormControl.errors){return false;}
         if (this.plzFormControl.errors){return false;}
         if (this.ortFormControl.errors){return false;}
-        return true; 
+        return true;
     }
-    
+
     parseRechercheResult(result){
         //const ergebnis = ((result || {}).Adresse_Response || {}).Ergebnis;
         const ergebnis = t(result, 'sucheMarktprodukt.Adressbezogen.Adresse_Response.Ergebnis').safeObject;
         console.log(ergebnis);
         if (ergebnis === undefined){
-           this.alertService.warning("DSL-Recherche-Ergebnis ungueltig"); 
-           return; 
+           this.alertService.warning("DSL-Recherche-Ergebnis ungueltig");
+           return;
         }
         switch (ergebnis.RueckmeldungSchluessel){
             case "10200":
-            case "10201":            
-            case "10220":                        
-            case "10221":                        
+            case "10201":
+            case "10220":
+            case "10221":
                 this.populateDSLProdukte(result);
                 break;
             case "10002":
@@ -277,32 +278,32 @@ export class DslAbfrageComponent implements ControlValueAccessor, OnInit {
             case "10004":
             case "10005":
                 this.populateRefineRecherche(result);
-                break;            
+                break;
             case "10202":
-            case "10203":            
-            case "10204":            
-                this.alertService.warning("DSL-Recherche-Fehler: " + ergebnis.RueckmeldungText ); 
-                break;                
+            case "10203":
+            case "10204":
+                this.alertService.warning("DSL-Recherche-Fehler: " + ergebnis.RueckmeldungText );
+                break;
             default:
-                this.alertService.warning("DSL-Recherche-Fehler: " + ergebnis.RueckmeldungText ); 
+                this.alertService.warning("DSL-Recherche-Fehler: " + ergebnis.RueckmeldungText );
         }
     }
-    
+
     onAddressSelectionChanged(event: MatAutocompleteSelectedEvent):void{
         //populate advanced search
-        console.log(event.option.value); 
+        console.log(event.option.value);
         if(!event.option.value.city){
                 this.rechercheAdvanced = true;
         }
         if(!event.option.value.house_number){
             this.rechercheAdvanced = true;
         }
-        
+
         this.strasseFormControl.setValue(event.option.value.road);
         this.hausnummerFormControl.setValue(event.option.value.house_number);
         this.plzFormControl.setValue(event.option.value.postcode);
         this.ortFormControl.setValue(event.option.value.city);
-        
+
     }
     onRechercheRefinedSelection(event: MatSelectChange):void{
         //populate advanced search
@@ -315,11 +316,11 @@ export class DslAbfrageComponent implements ControlValueAccessor, OnInit {
         //clear refined results
         this.rechercheRefinedAddressList = [];
         this.rechercheRefined=false;
-        this.rechercheAdvanced=true; 
-        
+        this.rechercheAdvanced=true;
+
     }
-    
-    
+
+
     selectBSAProduct(event: MatSelectChange):void{
         if (this.selectedBSAProduct){
             this.abfrageResult = {addresse:this.productAddress,produkt:this.selectedBSAProduct,availabilityChecked:true};;
@@ -329,11 +330,11 @@ export class DslAbfrageComponent implements ControlValueAccessor, OnInit {
         }
 
     }
-    
+
     setDisabledState( isDisabled : boolean ) : void {
         if(isDisabled){
             this.controlDisabled=true;
-            
+
         } else {
             this.controlDisabled=false;
         }
@@ -341,20 +342,20 @@ export class DslAbfrageComponent implements ControlValueAccessor, OnInit {
 
 
 
-  
+
     populateDSLProdukte(result){
         const response = t(result, 'sucheMarktprodukt.Adressbezogen.Adresse_Response').safeObject;
         let adresse = response.Adresse;
-        this.productAddress = <DSLRechercheAdresse>{}; 
+        this.productAddress = <DSLRechercheAdresse>{};
         this.productAddress.strasse=adresse.Strasse;
         this.productAddress.hausnummer=adresse.Hausnummer;
         this.productAddress.hausnummernzusatz=(adresse.Hausnummernzusatz === undefined) ? "" : adresse.Hausnummernzusatz;;
         this.productAddress.ort=adresse.Ort;
         this.productAddress.ortsteil=(adresse.Ortsteil === undefined) ? "" : adresse.Ortsteil;
         this.productAddress.plz=adresse.Postleitzahl;
-        this.productAddress.kls=adresse["KLS-ID"]; 
-        
-        
+        this.productAddress.kls=adresse["KLS-ID"];
+
+
         //this.productAddress = response.Adresse;
         //console.log(adresse);
         let capacity = response['DSL-Kapazitaet'];
@@ -362,47 +363,52 @@ export class DslAbfrageComponent implements ControlValueAccessor, OnInit {
         //console.log(response);
         if ((capacity.Produktliste !== undefined) && (this.selectableBSAProducts !== undefined)){
            	for (let produkt of capacity.Produktliste) {
-                //console.log(produkt);
+                console.log(produkt);
+                let mappedOptions =  this.selectableBSAProducts.filter(m => m.materialNummer==produkt.Materialnummer);
+                console.log(mappedOptions);
+                this.availableBSAProducts = this.availableBSAProducts.concat(mappedOptions);
+
+                /*
                 let mappedProduktOption = this.selectableBSAProducts.find(m => m.materialNummer==produkt.Materialnummer);
                 if (mappedProduktOption){
-                    //console.log(mappedProduktOption);
+                    console.log(mappedProduktOption);
                     this.availableBSAProducts.push(mappedProduktOption);
                     //this.requiredContactTypes.push(mappedContactType);
-                }
+                }*/
             }
         }
 
         if (this.availableBSAProducts.length==0){
-            this.alertService.warning("Keine BSA-Produkte gefunden");  
-            
+            this.alertService.warning("Keine BSA-Produkte gefunden");
+
         }
-        console.log("available bsa-products ",this.availableBSAProducts); 
-        
+        console.log("available bsa-products ",this.availableBSAProducts);
+
     }
-    
+
     populateRefineRecherche(result){
-        console.log("Suche verfeinern"); 
+        console.log("Suche verfeinern");
         const addrList = t(result, 'sucheMarktprodukt.Adressbezogen.Adresse_Response.AdressTreffer').safeObject;
         if (addrList === undefined){
-            this.alertService.warning("Recherche-Ergebnis nicht eindeutig, aber keine Auswahl zur Eingrenzung erhalten"); 
+            this.alertService.warning("Recherche-Ergebnis nicht eindeutig, aber keine Auswahl zur Eingrenzung erhalten");
             return;
         }
         this.rechercheRefinedAddressList = addrList;
         this.rechercheRefined=true;
- 
+
         console.log(this.rechercheRefinedAddressList);
-        
+
     }
 
-    
+
     propagateChange = (_: any) => {};
-    
+
     registerOnChange(fn) {
         this.propagateChange = fn;
     }
-    
+
     registerOnTouched() {}
-    
+
     writeValue(value: any) {
 
         if (t(value).isNullOrUndefined){

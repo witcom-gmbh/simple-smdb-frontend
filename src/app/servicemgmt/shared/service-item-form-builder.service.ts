@@ -25,7 +25,7 @@ import {
 import { ServiceItemService } from '../../services/service-item.service';
 import {MockApiSearchService} from '../../services/mock-api-search.service'
 import  * as constants from '../../shared/constants.module';
-import {TextComponent,TextAreaComponent,MockAutoCompleteComponent,SelectComponent} from './form-component-builder/form-components';
+import {TextComponent,TextAreaComponent,MockAutoCompleteComponent,SelectComponent,NumberComponent} from './form-component-builder/form-components';
 import { SmdbConfig } from './smdb-config';
 import {ValueHandler} from './value-handler.enum';
 
@@ -80,6 +80,9 @@ export class ServiceItemFormBuilder {
                       break;
                       case "AttributeStringDto":
                         formModel.push(this.getStringAttributeComponent(attribute,this.itemAttributes));
+                      break;
+                      case "AttributeDecimalDto":
+                        formModel.push(this.getDecimalAttributeComponent(attribute,this.itemAttributes));
                       break;
                       default:
                         console.warn("Unknown attributetype " + attribute._type);
@@ -262,6 +265,9 @@ export class ServiceItemFormBuilder {
                       case "AttributeStringDto":
                         this.formModel.push(this.getStringAttributeComponent(attribute,this.itemAttributes));
                       break;
+                      case "AttributeDecimalDto":
+                        this.formModel.push(this.getDecimalAttributeComponent(attribute,this.itemAttributes));
+                      break;
                       default:
                         console.warn("Unknown attributetype " + attribute._type);
                   }
@@ -361,6 +367,10 @@ export class ServiceItemFormBuilder {
                 }
                 return <AttributeSaveData>{attribute:attribute,extendedConfig:null};
             break;
+            case ValueHandler.DEFAULT_NUMBER_HANDLER:
+                attribute.value = value;
+                return <AttributeSaveData>{attribute:attribute,extendedConfig:null};
+            break;
             case ValueHandler.DEFAULT_ENUM_HANDLER:
                 updateEnum = this.getEnumAttributeValueByValue(attribute,value);
                 if (!t(updateEnum).isNullOrUndefined){
@@ -448,7 +458,7 @@ export class ServiceItemFormBuilder {
     /**
      * Get Attribute-Value
      */
-    private getAttributeValue(attribute:any):any{
+    private getAttributeValueOld(attribute:any):any{
       let attributeValue=null;
       //let formKey = attribute.name;
       switch(attribute._type){
@@ -507,11 +517,47 @@ export class ServiceItemFormBuilder {
             }
       }
 
+
       let controlDisabled=false;
       if ((this.serviceItem.status !== "TEST") && (this.serviceItem.status !== "INWORK")){
 
             controlDisabled=true;
       }
+
+      //If there is no extended configuration it means no DSL-Check has been performed.
+      let defaultOption:String = "Kein Standardwert";
+      if (savedValue==null){
+        if (t(attribute, 'values[0].displayValue.defaultText').isDefined){
+          defaultOption = attribute.values[0].displayValue.defaultText;
+        }
+      }
+      console.log(defaultOption);
+
+      console.log(attribute);
+      let attributeOptions:Array<any> = attribute.attributeDef.attributeType.values
+      let products:Array<DSLAbfrageProdukt> = attributeOptions.map(function (option){
+
+              let p:DSLAbfrageProdukt = <DSLAbfrageProdukt>{};
+              //ToDo get localized Value withfilter
+              p.produktoptionName = option.displayValue.defaultText;
+              p.produktoption = option.value;
+
+              //parse json from description
+              p.materialNummer = null;
+              //Get special config ;-)
+              if(!t(option.description.defaultText).isNullOrUndefined){
+                let optionConfig:any = JSON.parse(option.description.defaultText);
+                if (t(optionConfig.materialNummer).isDefined ){
+                  p.materialNummer = optionConfig.materialNummer;
+                }
+              }
+              return p;
+            })
+            .filter(p => p.materialNummer!=null);
+
+      console.log(products);
+      //Build selectable BSA-Products
+
 
       /* BSA 250
 , {
@@ -534,31 +580,32 @@ export class ServiceItemFormBuilder {
         validators: {
         required: null
         },
-        selectableBSAProducts : [{
-	"materialNummer": "89800055",
-	"produktoption": "bsa100_40",
-	"produktoptionName": "100/40 MBit/s"
-}, {
-	"materialNummer": "89743558",
-	"produktoption": "bsa16_1",
-	"produktoptionName": "16/1 MBit/s"
-}, {
-	"materialNummer": "89742311",
-	"produktoption": "bsa25_5",
-	"produktoptionName": "25/5 MBit/s"
-}, {
-	"materialNummer": "89742312",
-	"produktoption": "bsa50_10",
-	"produktoptionName": "50/10 MBit/s"
-}
-]
-
+        selectableBSAProducts : products,
+        defaultOption: defaultOption
     }
 
     );
 
   }
 
+  private getDecimalAttributeComponent(attribute:any,itemAttributes:Array<any>):any{
+
+    let filterProperty:CustomPropertyDto = this.getCustomPropertyByName(attribute,constants.ATTRIBUTE_RENDERER);
+    let renderer = this.getCustomPropertyValueByName(attribute,constants.ATTRIBUTE_RENDERER);
+    if (renderer===null){
+          return this.getDefaultDecimalAttributeComponent(attribute,itemAttributes);
+    }
+
+    return this.getDefaultDecimalAttributeComponent(attribute,itemAttributes);
+
+  }
+
+  private getDefaultDecimalAttributeComponent(attribute,itemAttributes:Array<any>):DynamicInputControlModel<any>{
+
+      return new NumberComponent(attribute,itemAttributes,this.serviceItem).AttributeRules(this.attributeValidationRules).getDynamicModel(); ;
+
+
+  }
 
   private getStringAttributeComponent(attribute:any,itemAttributes:Array<any>):any{
 

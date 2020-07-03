@@ -9,7 +9,7 @@ import {
     DynamicFormValueControlModelConfig,
     DynamicFormValueControlModel,
     DynamicFormControlLayout,
-    serializable 
+    serializable
 } from "@ng-dynamic-forms/core";
 import {
     ErrorStateMatcher,
@@ -29,23 +29,26 @@ export const DYNAMIC_FORM_CONTROL_TYPE_DSLABFRAGE = "DSLABFRAGE";
 
 export interface DynamicDslAbfrageControlModelConfig extends DynamicFormValueControlModelConfig<DSLAbfrageResult> {
     selectableBSAProducts?:DSLAbfrageProdukt[];
-    
+    defaultOption?:String;
+
 }
 
 export class DynamicDslAbfrageControlModel extends DynamicFormValueControlModel<DSLAbfrageResult> {
-    
+
     @serializable() selectableBSAProducts:DSLAbfrageProdukt[];
-    
+    @serializable() defaultOption:String;
+
     @serializable() readonly type: string = DYNAMIC_FORM_CONTROL_TYPE_DSLABFRAGE;
-     
+
     constructor(config: DynamicDslAbfrageControlModelConfig, layout?: DynamicFormControlLayout) {
         super(config, layout);
 
         this.selectableBSAProducts = config.selectableBSAProducts || [];
+        this.defaultOption =config.defaultOption || "KEIN DEFAULT"
 
     }
 
-    
+
 }
 
 @Component({
@@ -54,7 +57,7 @@ export class DynamicDslAbfrageControlModel extends DynamicFormValueControlModel<
   styleUrls: ['./dynamic-dslabfrage.component.css']
 })
 export class DynamicDSLAbfrageComponent extends DynamicFormControlComponent {
-    
+
     @Input() group: FormGroup;
     @Input() layout: DynamicFormLayout;
     @Input() model: DynamicDslAbfrageControlModel;
@@ -63,7 +66,7 @@ export class DynamicDSLAbfrageComponent extends DynamicFormControlComponent {
     @Output() change: EventEmitter<any> = new EventEmitter();
     @Output() customEvent: EventEmitter<DynamicFormControlCustomEvent> = new EventEmitter();
     @Output() focus: EventEmitter<any> = new EventEmitter();
-    
+
     //@ViewChild(DslAbfrageComponent) dslAbfrageComponent: DslAbfrageComponent;
     @ViewChild("autoAddress") matAutocomplete: MatAutocomplete;
     @ViewChild(MatInput) matInput: MatInput;
@@ -76,7 +79,7 @@ export class DynamicDSLAbfrageComponent extends DynamicFormControlComponent {
                 @Inject(MAT_RIPPLE_GLOBAL_OPTIONS) @Optional() public RIPPLE_OPTIONS: RippleGlobalOptions) {
 
         super(layoutService, validationService);
-                
+
     }
 
 }
