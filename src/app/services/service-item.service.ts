@@ -165,7 +165,7 @@ export class ServiceItemService {
 
 
 
-  private getProductItemCustomPropertyByName(product:any,propertyName:string):any{
+  public getProductItemCustomPropertyByName(product:any,propertyName:string):any{
       let customProperties:any = product.customProperties;
       let prop = customProperties.properties.find(i => i.name === propertyName);
       if (t(prop).isNullOrUndefined){
@@ -260,7 +260,7 @@ export class ServiceItemService {
           return false;
 
       }
-      return prop.value;
+      return JSON.parse(prop.value);
 
   }
 

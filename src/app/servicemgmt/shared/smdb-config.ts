@@ -74,7 +74,7 @@ export const SmdbConfig:any = {
 					"name": "einmalig"
 				},
 				{
-					"name": "monatliche"
+					"name": "acctTypeMonthlyGeneric"
 				}
 			]
 

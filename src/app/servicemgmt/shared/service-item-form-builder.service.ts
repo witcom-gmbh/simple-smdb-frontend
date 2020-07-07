@@ -72,7 +72,7 @@ export class ServiceItemFormBuilder {
                 this.buildValidationRules();
                 let f = new UserVisibleAttributeFilterPipe();
                 for (let attribute of f.transform(this.itemAttributes)){
-                  console.log(attribute);
+                  //console.log(attribute);
                   switch(attribute._type){
                       case "AttributeEnumDto":
                         //formSpec.formDefinition.components.push(this.getEnumAttributeComponent(attribute));
@@ -144,44 +144,47 @@ export class ServiceItemFormBuilder {
 
         let formObservable = new Observable((observer) => {
 
-            //Laufzeiten
-            let availableTerms = this.svcItemService.getAvailableServiceTermsForService(this.serviceItem).map(function (val){
+            if (this.svcItemService.isServicePricingTermBased(this.serviceItem)){
 
-              let dv = {"label":val.name,"value":val.value};
-              return dv;
 
-            });
+              //Laufzeiten
+              let availableTerms = this.svcItemService.getAvailableServiceTermsForService(this.serviceItem).map(function (val){
 
-            let serviceTerm = this.svcItemService.getServiceTerms(this.serviceItem);
+                let dv = {"label":val.name,"value":val.value};
+                return dv;
+
+              });
+
+              let serviceTerm = this.svcItemService.getServiceTerms(this.serviceItem);
               if (serviceTerm === null){
-                  //Standard-Laufzeit
-                  serviceTerm = this.svcItemService.getDefaultServiceTermForService(this.serviceItem);
-                  if (serviceTerm===null){
-                      serviceTerm = {name:"",value:null};
-                  }
-            }
-
-            let model = new DynamicSelectModel<string>({
-                    id: "serviceitem_serviceTerms",
-                    label: "Laufzeit",
-                    value:serviceTerm.value,
-                    multiple: false,
-                    options:availableTerms,
-                    additional:{
-                        type:"serviceItem",
+                    //Standard-Laufzeit
+                    serviceTerm = this.svcItemService.getDefaultServiceTermForService(this.serviceItem);
+                    if (serviceTerm===null){
+                        serviceTerm = {name:"",value:null};
                     }
-            });
-            let validators = { required: null};
-            model.validators=validators;
-            model.errorMessages= { required: "Laufzeit ist erforderlich." };
+              }
+
+              let model = new DynamicSelectModel<string>({
+                      id: "serviceitem_serviceTerms",
+                      label: "Laufzeit",
+                      value:serviceTerm.value,
+                      multiple: false,
+                      options:availableTerms,
+                      additional:{
+                          type:"serviceItem",
+                      }
+              });
+              let validators = { required: null};
+              model.validators=validators;
+              model.errorMessages= { required: "Laufzeit ist erforderlich." };
 
 
-            if ((this.serviceItem.status !== "TEST") && (this.serviceItem.status !== "INWORK")){
-                model.disabled=true;
+              if ((this.serviceItem.status !== "TEST") && (this.serviceItem.status !== "INWORK")){
+                  model.disabled=true;
+              }
+              formModel.push(model);
+              //Laufzeiten Ende
             }
-            formModel.push(model);
-            //Laufzeiten Ende
-
 
             observer.next(formModel);
             observer.complete();
@@ -236,8 +239,11 @@ export class ServiceItemFormBuilder {
     }
 
 
-
-    getFormModel(serviceItem:ServiceItemDto):Observable<any>{
+    /**
+     * OLD PLEASE DELETE
+     * @param serviceItem
+     */
+    OLDgetFormModel(serviceItem:ServiceItemDto):Observable<any>{
         this.serviceItem = serviceItem;
         this.requiredContactTypes=[];
         this.attributeValidationRules=null;
@@ -306,13 +312,17 @@ export class ServiceItemFormBuilder {
 
     /**
      * Gets Form-Model for Service-Object itself
-     *
+     * OLD OLD
      *
      */
     public getServiceObjectFormModel(){
       let formModel : DynamicFormModel = [];
       if(this.serviceItem._type==="ServiceDto"){
           //Laufzeiten
+          if (!this.svcItemService.isServicePricingTermBased(this.serviceItem)){
+            console.log("No term-based pricing");
+            return formModel;
+          }
           let availableTerms = this.svcItemService.getAvailableServiceTermsForService(this.serviceItem).map(function (val){
 
               let dv = {"label":val.name,"value":val.value};
@@ -863,26 +873,30 @@ export class ServiceItemFormBuilder {
       let updatedData = this.getUpdatedDataFromModel(formModel);
       modifiedExtendedAttributeConfigs=updatedData.extendedAttributeConfigs;
 
-      //Remove existing extendedconfig for attributes that have updated extendedconfig
+      //Remove existing extendedconfig from array for attributes that have been updated
       for (let mac of modifiedExtendedAttributeConfigs){
           extendedAttributeConfigs.splice(extendedAttributeConfigs.findIndex(item => item.attribute===mac.attribute));
 
       }
+      //Add updated config
       for (let mac of modifiedExtendedAttributeConfigs){
           extendedAttributeConfigs.push(mac);
       }
 
       if (this.serviceItem._type==="ServiceDto"){
-          //Todo: checken ob custom-property existiert
-        if (!t(this.serviceItem.customProperties.properties.find(p=>p.name==="serviceTerms")).isNullorUndefined){
+          //Laufzeit speichern
+          if (this.svcItemService.isServicePricingTermBased(this.serviceItem)){
             let model = formModel.find(m => m.id==="serviceitem_serviceTerms");
-            if (!t(model).isNulOrUndefined){
+            if (!t(model).isNullOrUndefined){
                 this.serviceItem.customProperties.properties.find(p=>p.name==="serviceTerms").value=model.value;
             }
-        }
-        if (!t(this.serviceItem.customProperties.properties.find(p=>p.name==="extendedConfiguration")).isNullorUndefined){
+          } else {
+            this.serviceItem.customProperties.properties.find(p=>p.name==="serviceTerms").value="";
+          }
+          //Erweiterte Konfiguration speichern
+          if (!t(this.serviceItem.customProperties.properties.find(p=>p.name==="extendedConfiguration")).isNullorUndefined){
             this.serviceItem.customProperties.properties.find(p=>p.name==="extendedConfiguration").value=JSON.stringify({	"attributeConfigs":extendedAttributeConfigs});
-        }
+          }
 
       }
 
@@ -896,7 +910,7 @@ export class ServiceItemFormBuilder {
    * Updates ServiceItemDTO Attributes & basedata with form data.
 
    */
-  updateServiceItemDTOWithFormData(formData){
+  OLDupdateServiceItemDTOWithFormData(formData){
       //this.logger.debug(formData);
       let extendedAttributeConfigs:any=null;
       let modifiedExtendedAttributeConfigs:Array<any>=[];
