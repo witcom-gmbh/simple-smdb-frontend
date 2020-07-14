@@ -24,6 +24,7 @@ export abstract class AbstractBaseComponent {
     protected itemAttributes:Array<any>;
     protected serviceItem:ServiceItemDto;
     protected attributeValueHandler:ValueHandler;
+    protected enabled:boolean=true;
 
     constructor(attribute:AttributeDto,itemAttributes:Array<any>,serviceItem:ServiceItemDto){
         //console.log(serviceItem);
@@ -69,6 +70,14 @@ export abstract class AbstractBaseComponent {
         return f.transform(this.attribute.attributeDef.attributeDef.description);
     }
 
+    Disabled():any{
+      this.enabled=false;
+      return this;
+    }
+
+    setDisabled():void{
+      this.enabled=false;
+    }
     /**
      * Checks if Attribute can be changed
      */

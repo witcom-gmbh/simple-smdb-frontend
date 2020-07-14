@@ -49,6 +49,10 @@ export class SelectComponent extends AbstractBaseComponent{
             model.disabled=true;
         }
 
+        if(this.enabled === false){
+          model.disabled=true;
+        }
+
         //Validierungen
         if (this.attribute.attributeDef.attributeDef.functionalType=="FUNCTIONAL"){
             let validators = { required: null};

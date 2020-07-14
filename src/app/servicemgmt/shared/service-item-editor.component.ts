@@ -13,8 +13,9 @@ import {
 } from "@ng-dynamic-forms/core";
 
 import { ServiceItemDto,AttributeDto,ServiceItemMultiplicityDto } from '../../api/models';
-import { ServiceItemService } from '../../services/service-item.service';
 import { SmdbPartnerService} from '../../services/smdb-partner.service';
+
+import { ServiceItemService,ProductService} from '../../services/services';
 
 import { ServiceItemFormBuilder} from './service-item-form-builder.service'
 
@@ -40,9 +41,10 @@ export class ServiceItemEditorComponent implements OnInit {
         private mockSearchService:MockApiSearchService,
         private servicItemService:ServiceItemService,
         private smdbPartnerService: SmdbPartnerService,
-        private serviceItemFormBuilder:ServiceItemFormBuilder
-    ) { }
-
+        private serviceItemFormBuilder:ServiceItemFormBuilder,
+        private productService: ProductService
+    ) {
+    }
     ngOnInit() {
     }
 
@@ -60,10 +62,13 @@ export class ServiceItemEditorComponent implements OnInit {
             forkJoin(
                 this.servicItemService.getItemAttributes(this.serviceItem.id),
                 this.servicItemService.getContactRelations(this.serviceItem.id),
-                this.servicItemService.getChildrenMultiplicity(this.serviceItem.id)
+                this.servicItemService.getChildrenMultiplicity(this.serviceItem.id),
+                this.productService.getAttributeDefByProductItem(this.serviceItem.productItem.id)
             )
-            .subscribe(([itemAttributes,contactRelations,childrenMultiplicity]) => {
+            .subscribe(([itemAttributes,contactRelations,childrenMultiplicity,productItemAttributes]) => {
                 this.itemAttributes = itemAttributes;
+                //console.log(productItemAttributes);
+                this.serviceItemFormBuilder.setProductitemAttributes(productItemAttributes);
                 this.serviceItemFormBuilder.setServiceItem(this.serviceItem);
                 this.serviceItemFormBuilder.setServiceItemAttributes(this.itemAttributes);
                 this.serviceItemFormBuilder.setServiceItemContactRelations(contactRelations)

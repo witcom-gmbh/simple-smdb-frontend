@@ -2,7 +2,9 @@ import { Injectable } from '@angular/core';
 import { Observable,throwError  } from 'rxjs';
 import t from 'typy';
 import { NGXLogger } from 'ngx-logger';
-import { ServiceItemDto,AttributeDto,CustomPropertiesDto,CustomPropertyDto,ContactRelationDto,ServiceItemMultiplicityDto } from '../../api/models';
+import { ServiceItemDto,AttributeDto,
+  AttributeDefDto,
+  CustomPropertiesDto,CustomPropertyDto,ContactRelationDto,ServiceItemMultiplicityDto,AttributeDefAssociationDto } from '../../api/models';
 import {UserVisibleAttributeFilterPipe,SplTranslatePipe} from '../../shared/shared.module';
 import {
     DynamicFormModel,
@@ -25,7 +27,7 @@ import {
 import { ServiceItemService } from '../../services/service-item.service';
 import {MockApiSearchService} from '../../services/mock-api-search.service'
 import  * as constants from '../../shared/constants.module';
-import {TextComponent,TextAreaComponent,MockAutoCompleteComponent,SelectComponent,NumberComponent} from './form-component-builder/form-components';
+import {AbstractBaseComponent,TextComponent,TextAreaComponent,MockAutoCompleteComponent,SelectComponent,NumberComponent} from './form-component-builder/form-components';
 import { SmdbConfig } from './smdb-config';
 import {ValueHandler} from './value-handler.enum';
 
@@ -49,6 +51,7 @@ export class ServiceItemFormBuilder {
 
     private serviceItem:ServiceItemDto;
     private itemAttributes:any=null;
+    private productItemAttributes:Array<AttributeDefAssociationDto>=[];
     private contactRelations:Array<ContactRelationDto>=[];
     private serviceTransition:any;
     private requiredContactTypes:Array<string>=[];
@@ -240,131 +243,15 @@ export class ServiceItemFormBuilder {
 
 
     /**
-     * OLD PLEASE DELETE
-     * @param serviceItem
-     */
-    OLDgetFormModel(serviceItem:ServiceItemDto):Observable<any>{
-        this.serviceItem = serviceItem;
-        this.requiredContactTypes=[];
-        this.attributeValidationRules=null;
-        this.itemAttributes=null;
-        let formObservable = new Observable((observer) => {
-
-            this.buildValidationRules();
-            console.log(this.serviceItem);
-
-            this.svcItemService.getItemAttributes(this.serviceItem.id).subscribe(res => {
-                this.itemAttributes = res;
-
-                this.formModel = [].concat(this.getServiceObjectFormModel());
-
-                let f = new UserVisibleAttributeFilterPipe();
-                for (let attribute of f.transform(this.itemAttributes)){
-                  console.log(attribute);
-
-                  //this.formModel.push(this.getFakeModel());
-                  switch(attribute._type){
-                      case "AttributeEnumDto":
-                        //formSpec.formDefinition.components.push(this.getEnumAttributeComponent(attribute));
-                        this.formModel.push(this.getEnumAttributeComponent(attribute,this.itemAttributes));
-                      break;
-                      case "AttributeStringDto":
-                        this.formModel.push(this.getStringAttributeComponent(attribute,this.itemAttributes));
-                      break;
-                      case "AttributeDecimalDto":
-                        this.formModel.push(this.getDecimalAttributeComponent(attribute,this.itemAttributes));
-                      break;
-                      default:
-                        console.warn("Unknown attributetype " + attribute._type);
-                  }
-
-                }
-
-
-                let test = new ServiceItemContactDFCControlModel({
-                    id:"serviceitem_contactRelation",
-                    itemId:this.serviceItem.id,
-                    requiredContactRoles:this.requiredContactTypes
-                }
-
-                );
-                //console.log(test);
-
-                this.formModel.push(test);
-
-
-                observer.next(this.formModel);
-                //observer.complete();
-                //observer.error("fehler");
-                observer.complete();
-            });
-
-
-
-        });
-
-
-
-
-        return formObservable;
-
-    }
-
-    /**
-     * Gets Form-Model for Service-Object itself
-     * OLD OLD
+     * Get save-data from form-data. Special handling required for cases like
+     * storing Value as JSON, or storing additional configuration
      *
+     * @param value - the form-value that has to be saved
+     * @param attribute - SMDB-Attribute
+     * @param valueHandler - defines how to handle the value
+     * @param valuePropertyPath - defines the JSON-Path where the SMDN-Attribute value is found within the form-data-value
      */
-    public getServiceObjectFormModel(){
-      let formModel : DynamicFormModel = [];
-      if(this.serviceItem._type==="ServiceDto"){
-          //Laufzeiten
-          if (!this.svcItemService.isServicePricingTermBased(this.serviceItem)){
-            console.log("No term-based pricing");
-            return formModel;
-          }
-          let availableTerms = this.svcItemService.getAvailableServiceTermsForService(this.serviceItem).map(function (val){
-
-              let dv = {"label":val.name,"value":val.value};
-              return dv;
-
-            });
-
-          let serviceTerm = this.svcItemService.getServiceTerms(this.serviceItem);
-          if (serviceTerm === null){
-              //Standard-Laufzeit
-              serviceTerm = this.svcItemService.getDefaultServiceTermForService(this.serviceItem);
-              if (serviceTerm===null){
-                  serviceTerm = {name:"",value:null};
-              }
-          }
-
-          let model = new DynamicSelectModel<string>({
-                id: "serviceitem_serviceTerms",
-                label: "Laufzeit",
-                value:serviceTerm.value,
-                multiple: false,
-                options:availableTerms
-
-            });
-            let validators = { required: null};
-            model.validators=validators;
-            model.errorMessages= { required: "Laufzeit ist erforderlich." };
-
-
-            if ((this.serviceItem.status !== "TEST") && (this.serviceItem.status !== "INWORK")){
-                model.disabled=true;
-            }
-            console.log(model);
-            formModel.push(model);
-        }
-
-
-        return formModel;
-
-    }
-
-    private getAttributeSaveData(value:any,attribute:any,valueHandler:ValueHandler,valuePropertyPath?:string){
+    private getAttributeSaveData(value:any,attribute:any,valueHandler:ValueHandler,valuePropertyPath?:string):AttributeSaveData{
 
         let updateEnum = null;
 
@@ -376,22 +263,20 @@ export class ServiceItemFormBuilder {
                     attribute.value = value;
                 }
                 return <AttributeSaveData>{attribute:attribute,extendedConfig:null};
-            break;
+
             case ValueHandler.DEFAULT_NUMBER_HANDLER:
                 attribute.value = value;
                 return <AttributeSaveData>{attribute:attribute,extendedConfig:null};
-            break;
             case ValueHandler.DEFAULT_ENUM_HANDLER:
                 updateEnum = this.getEnumAttributeValueByValue(attribute,value);
                 if (!t(updateEnum).isNullOrUndefined){
                     attribute.values[0] = updateEnum;
                 }
                 return <AttributeSaveData>{attribute:attribute,extendedConfig:null};
-            break;
             case ValueHandler.CONFIG_ENUM_HANDLER:
                 //Get Attribute-Value from specified Property-Path
                 let attrValue = t(value,valuePropertyPath).safeString;
-                this.logger.debug("Got attrValue ",attrValue);
+                //this.logger.debug("Got attrValue ",attrValue);
                 updateEnum = this.getEnumAttributeValueByValue(attribute,attrValue);
                 if (!t(updateEnum).isNullOrUndefined){
                     attribute.values[0] = updateEnum;
@@ -399,100 +284,19 @@ export class ServiceItemFormBuilder {
 
                 //attribute.values[0] = updateEnum;
                 return <AttributeSaveData>{attribute:attribute,extendedConfig:value};
-            break;
 
         }
 
     }
 
-    /**
-     * Returns Attriute-Value and extendedConfig(if present) of Attribute as AttributeSaveData-Object,
-     * for updating the ServiceItem
-     */
-    private getAttributeSaveDataOld(attribute:any,formData:any){
-        let saveData:AttributeSaveData=null;
-        let rendererProperty:CustomPropertyDto=null;
-        let updateEnum = null;
-        switch(attribute._type){
-            case "AttributeEnumDto":
-
-                rendererProperty = this.getCustomPropertyByName(attribute,constants.ATTRIBUTE_RENDERER);
-                if (rendererProperty===undefined){
-                    updateEnum = this.getEnumAttributeValueByValue(attribute,formData);
-                    attribute.values[0] = updateEnum;
-                    return <AttributeSaveData>{attribute:attribute,extendedConfig:null};
-                }
-                //Renderer-Specific Value-Handling ?
-                switch(rendererProperty.value){
-                    case constants.ATTRIBUTE_RENDERER_BSAPRODUCT:
-                        //Value
-                        let
-                        updateEnum = this.getEnumAttributeValueByValue(attribute,formData.produkt.produktoption);
-                        attribute.values[0] = updateEnum;
-                        //Extended-config
-                        return <AttributeSaveData>{attribute:attribute,extendedConfig:formData};
-                    default:
-                        updateEnum = this.getEnumAttributeValueByValue(attribute,formData);
-                        attribute.values[0] = updateEnum;
-                        return <AttributeSaveData>{attribute:attribute,extendedConfig:null};
-                }
-              break;
-              case "AttributeStringDto":
-                rendererProperty = this.getCustomPropertyByName(attribute,constants.ATTRIBUTE_RENDERER);
-                if (rendererProperty===undefined){
-                    if (this.isAttributeStoredAsJSON(attribute)){
-                         attribute.value=JSON.stringify(formData);
-                    } else {
-                        attribute.value = formData;
-                    }
-                    return <AttributeSaveData>{attribute:attribute,extendedConfig:null};
-                }
-                //Renderer-Specific Value-Handling ?
-                switch(rendererProperty.value){
-                    default:
-                        if (this.isAttributeStoredAsJSON(attribute)){
-                            attribute.value=JSON.stringify(formData);
-                        } else {
-                            attribute.value = formData;
-                        }
-                        return <AttributeSaveData>{attribute:attribute,extendedConfig:null};
-                }
-              break;
-              default:
-                this.logger.warn('Unknown Attribute-Type ',attribute._type);
-                return null;
-
-          }
-    }
-
-    /**
-     * Get Attribute-Value
-     */
-    private getAttributeValueOld(attribute:any):any{
-      let attributeValue=null;
-      //let formKey = attribute.name;
-      switch(attribute._type){
-          case "AttributeEnumDto":
-            attributeValue = attribute.values[0].value;
-          break;
-          case "AttributeStringDto":
-              if (this.isAttributeStoredAsJSON(attribute)){
-                 attributeValue = JSON.parse(attribute.value);
-              } else {
-                attributeValue = attribute.value;
-              }
-          break;
-          default:
-            this.logger.warn('Unknown Attribute-Type ',attribute._type);
-      }
-
-      return attributeValue;
-
-    }
-
 
   private getEnumAttributeComponent(attribute:any,itemAttributes:Array<any>):any{
-      let rendererProperty:CustomPropertyDto = this.getCustomPropertyByName(attribute,constants.ATTRIBUTE_RENDERER);
+      //get attribute from product - attributes on service-items are inconsistent
+      let productAttribute:AttributeDefAssociationDto = this.productItemAttributes.find(p => p.id === attribute.attributeDef.id);
+      if (t(productAttribute).isNullOrUndefined){
+        return this.getDefaultEnumAttributeComponent(attribute,itemAttributes);
+      }
+      let rendererProperty:CustomPropertyDto = this.getCustomPropertyByName(productAttribute.attributeDef,constants.ATTRIBUTE_RENDERER);
 
       if (rendererProperty===undefined){
           return this.getDefaultEnumAttributeComponent(attribute,itemAttributes);
@@ -501,6 +305,8 @@ export class ServiceItemFormBuilder {
       switch(rendererProperty.value){
           case constants.ATTRIBUTE_RENDERER_BSAPRODUCT:
             return this.getBSAProductComponent(attribute,itemAttributes);
+          case constants.ATTRIBUTE_RENDERER_READONLY:
+            return this.getReadOnlyEnumAttributeComponent(attribute,itemAttributes);
           default:
             return this.getDefaultEnumAttributeComponent(attribute,itemAttributes);
       }
@@ -513,6 +319,11 @@ export class ServiceItemFormBuilder {
 
   private getDefaultEnumAttributeComponent(attribute:any,itemAttributes:Array<any>):any{
       return new SelectComponent(attribute,itemAttributes,this.serviceItem).getDynamicModel();
+  }
+
+  private getReadOnlyEnumAttributeComponent(attribute:any,itemAttributes:Array<any>):any{
+    let component:SelectComponent = new SelectComponent(attribute,itemAttributes,this.serviceItem);
+    return component.Disabled().getDynamicModel();
   }
 
   private getBSAProductComponent(attribute:any,itemAttributes:Array<any>):any{
@@ -541,9 +352,6 @@ export class ServiceItemFormBuilder {
           defaultOption = attribute.values[0].displayValue.defaultText;
         }
       }
-      console.log(defaultOption);
-
-      console.log(attribute);
       let attributeOptions:Array<any> = attribute.attributeDef.attributeType.values
       let products:Array<DSLAbfrageProdukt> = attributeOptions.map(function (option){
 
@@ -600,13 +408,21 @@ export class ServiceItemFormBuilder {
 
   private getDecimalAttributeComponent(attribute:any,itemAttributes:Array<any>):any{
 
-    let filterProperty:CustomPropertyDto = this.getCustomPropertyByName(attribute,constants.ATTRIBUTE_RENDERER);
-    let renderer = this.getCustomPropertyValueByName(attribute,constants.ATTRIBUTE_RENDERER);
-    if (renderer===null){
-          return this.getDefaultDecimalAttributeComponent(attribute,itemAttributes);
-    }
+      let productAttribute:AttributeDefAssociationDto = this.productItemAttributes.find(p => p.id === attribute.attributeDef.id);
+      if (t(productAttribute).isNullOrUndefined){
+        return this.getDefaultDecimalAttributeComponent(attribute,itemAttributes);
+      }
+      let rendererProperty:CustomPropertyDto = this.getCustomPropertyByName(productAttribute.attributeDef,constants.ATTRIBUTE_RENDERER);
 
-    return this.getDefaultDecimalAttributeComponent(attribute,itemAttributes);
+      if (rendererProperty===undefined){
+          return this.getDefaultDecimalAttributeComponent(attribute,itemAttributes);
+      }
+
+      switch(rendererProperty.value){
+
+          default:
+            return this.getDefaultDecimalAttributeComponent(attribute,itemAttributes);
+      }
 
   }
 
@@ -619,17 +435,17 @@ export class ServiceItemFormBuilder {
 
   private getStringAttributeComponent(attribute:any,itemAttributes:Array<any>):any{
 
-    let filterProperty:CustomPropertyDto = this.getCustomPropertyByName(attribute,constants.ATTRIBUTE_RENDERER);
-    let renderer = this.getCustomPropertyValueByName(attribute,constants.ATTRIBUTE_RENDERER);
+    let productAttribute:AttributeDefAssociationDto = this.productItemAttributes.find(p => p.id === attribute.attributeDef.id);
+    if (t(productAttribute).isNullOrUndefined){
+      return this.getDefaultStringAttributeComponent(attribute,itemAttributes);
+    }
+    let rendererProperty:CustomPropertyDto = this.getCustomPropertyByName(productAttribute.attributeDef,constants.ATTRIBUTE_RENDERER);
 
-    if (renderer===null){
-          return this.getDefaultStringAttributeComponent(attribute,itemAttributes);
-      }
-    //let comp = new TextComponent(attribute,itemAttributes,this.serviceItem).getComponent();
-    //let model = new TextComponent(attribute,itemAttributes,this.serviceItem).getDynamicModel();
-    //ATTRIBUTE_RENDERER_TEXTAREA
+    if (rendererProperty===undefined){
+        return this.getDefaultStringAttributeComponent(attribute,itemAttributes);
+    }
 
-    switch(renderer){
+    switch(rendererProperty.value){
           case constants.ATTRIBUTE_RENDERER_CONTACT:
             //return this.getContactStringAttributeComponent(attribute);
             return new MockAutoCompleteComponent(attribute,itemAttributes,this.serviceItem).getDynamicContactModel(this.searchService); ;
@@ -736,6 +552,12 @@ export class ServiceItemFormBuilder {
 
   }
 
+  public setProductitemAttributes(productItemAttributes:AttributeDefAssociationDto[]):void{
+    this.productItemAttributes = productItemAttributes;
+
+
+  }
+
   public setServiceTransition(transition:string):void{
      if (!t(SmdbConfig.transitions).isArray){
         console.warn("No Transition Mapping found")
@@ -776,16 +598,28 @@ export class ServiceItemFormBuilder {
       //return customProperties.properties.find(i => i.name === propertyName);
   }
 
-  private getCustomPropertyByName(attribute:AttributeDto,propertyName:string):CustomPropertyDto{
-      let customProperties:any = attribute.attributeDef.attributeDef.customProperties;
-      //return customProperties.properties.find(i => i.name === propertyName);
-      let prop = customProperties.properties.find(i => i.name === propertyName);
-      if (t(prop).isNullOrUndefined){
-          return undefined;
-      }
-      return prop;
+  /**
+   * Get custom -property from attribute-definition
+   *
+   * @param attributeDef
+   * @param propertyName
+   */
+  private getCustomPropertyByName(attributeDef:AttributeDefDto,propertyName:string):CustomPropertyDto{
+    let customProperties:any = attributeDef.customProperties;
+    let prop = customProperties.properties.find(i => i.name === propertyName);
+    if (t(prop).isNullOrUndefined){
+        return undefined;
+    }
+    return prop;
   }
 
+
+  /**
+   * DEPRECATED
+   *
+   * @param attribute
+   * @param propertyName
+   */
   private getCustomPropertyValueByName(attribute:AttributeDto,propertyName:string):string{
       let customProperties:CustomPropertiesDto = attribute.attributeDef.attributeDef.customProperties;
       let property = customProperties.properties.find(i => i.name === propertyName);
@@ -795,7 +629,7 @@ export class ServiceItemFormBuilder {
 
 
   private isAttributeStoredAsJSON(attribute:any):boolean{
-      let filterProperty:CustomPropertyDto = this.getCustomPropertyByName(attribute,'attributeStoredAsJson');
+      let filterProperty:CustomPropertyDto = this.getCustomPropertyByName(attribute.attributeDef.attributeDef,'attributeStoredAsJson');
       if (t(filterProperty,'value').isTrue){
           return true;
       }
@@ -906,66 +740,6 @@ export class ServiceItemFormBuilder {
   }
 
 
-  /**
-   * Updates ServiceItemDTO Attributes & basedata with form data.
-
-   */
-  OLDupdateServiceItemDTOWithFormData(formData){
-      //this.logger.debug(formData);
-      let extendedAttributeConfigs:any=null;
-      let modifiedExtendedAttributeConfigs:Array<any>=[];
-      let modifiedAttributes:Array<AttributeDto>=[];
-
-      let extendedConfig = this.svcItemService.getServiceItemExtendedConfig(this.serviceItem,"extendedConfiguration");
-      if (t(extendedConfig,'attributeConfigs').isArray){
-        extendedAttributeConfigs = extendedConfig.attributeConfigs;
-      } else {
-        extendedAttributeConfigs = [];
-      }
-
-
-      const PFX_ATTR="attribute_";
-      //Nur Form-Elemente die mit PXF_ATTR starten
-      const attributeFormData = Object.keys(formData)
-        .filter(key => key.substr(0,PFX_ATTR.length)===PFX_ATTR)
-        .map(attrName => attrName.substr(PFX_ATTR.length));
-      //Nur Attribute aktualisieren, die im formular vorhanden sind
-      const attributestoUpdate = this.itemAttributes.filter(attr => attributeFormData.includes(attr.name));
-
-      for (let attribute of new UserVisibleAttributeFilterPipe().transform(this.itemAttributes)){
-          if (this.isAttributeUpdateable(attribute)){
-              let saveData = this.getAttributeSaveDataOld(attribute,formData[PFX_ATTR+attribute.name]);
-              modifiedExtendedAttributeConfigs.push({attribute:attribute.name,config:saveData.extendedConfig});
-              modifiedAttributes.push(saveData.attribute);
-              //console.log(saveData);
-          }
-      }
-
-      //Remove existing extendedconfig for attributes that have updated extendedconfig
-      for (let mac of modifiedExtendedAttributeConfigs){
-          extendedAttributeConfigs.splice(extendedAttributeConfigs.findIndex(item => item.attribute===mac.attribute));
-
-      }
-      for (let mac of modifiedExtendedAttributeConfigs){
-          extendedAttributeConfigs.push(mac);
-      }
-
-      console.log(extendedAttributeConfigs);
-      if (this.serviceItem._type==="ServiceDto"){
-          //Todo: checken ob custom-property existiert
-        if (!t(this.serviceItem.customProperties.properties.find(p=>p.name==="serviceTerms")).isNullorUndefined){
-            this.serviceItem.customProperties.properties.find(p=>p.name==="serviceTerms").value=formData.serviceitem_serviceTerms;
-        }
-        if (!t(this.serviceItem.customProperties.properties.find(p=>p.name==="extendedConfiguration")).isNullorUndefined){
-            this.serviceItem.customProperties.properties.find(p=>p.name==="extendedConfiguration").value=JSON.stringify({	"attributeConfigs":extendedAttributeConfigs});
-        }
-        console.log(this.serviceItem.customProperties);
-      }
-
-      return <ServiceItemSaveData> {serviceItem:this.serviceItem,itemAttributes:modifiedAttributes};
-
-
-  }
 
 
 }

@@ -15,7 +15,6 @@ export { ServiceConfigComponent } from './service-config/service-config.componen
 export { ServiceItemValidationService } from './shared/service-item-validation.service';
 
 import { AppRoutingModule } from '../app-routing.module';
-import { SvcitemConfigComponent } from './svcitem-config/svcitem-config.component';
 import {SharedModule} from '../shared/shared.module';
 import { FormioModule } from 'angular-formio';
 import { ServiceItemEditorComponent } from './shared/service-item-editor.component';
@@ -28,7 +27,7 @@ import { TestInstantiateComponent } from './shared/test-instantiate/test-instant
 import { SimpleServiceSearchComponent } from './shared/simple-service-search/simple-service-search.component'
 @NgModule({
 
-  declarations: [ServiceConfigComponent, SvcitemConfigComponent, ServiceItemEditorComponent,
+  declarations: [ServiceConfigComponent, ServiceItemEditorComponent,
     FormTestComponent,
     ServicePriceComponent,
     TestInstantiateComponent,
@@ -50,7 +49,6 @@ import { SimpleServiceSearchComponent } from './shared/simple-service-search/sim
   ],
   exports: [
     ServiceConfigComponent,
-    SvcitemConfigComponent,
     ServiceItemEditorComponent,
     ServicePriceComponent,
     TestInstantiateComponent,

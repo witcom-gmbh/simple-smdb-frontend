@@ -6,3 +6,4 @@ export * from './ServiceTerm';
 export * from './service-management.service'
 export * from './product-search.service'
 export * from './service-search.service'
+export * from './product.service'
