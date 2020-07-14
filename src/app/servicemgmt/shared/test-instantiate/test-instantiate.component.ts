@@ -50,7 +50,7 @@ export class TestInstantiateComponent implements OnInit {
 
   ngOnInit() {
 
-    let portfolios:Array<String> = ["10195566"];
+    let portfolios:Array<String> = ["10195566","10059687"];
 
     this.productAutoComplete$ = this.autoCompleteControl.valueChanges.pipe(
       startWith(''),

@@ -34,7 +34,8 @@ export class ServiceSearchService {
     params.serviceDataSelector._type="ServiceDataSelectorDto";
     params.serviceDataSelector.addCustomProperties=true;
     //params.query="(status != DELETED AND status != ARCHIVED) AND text ~ \""+queryText+"\"";
-    params.query="(status = TEST and product.productPortfolio.id = 10195566) AND (text ~ \""+queryText+"\" or customProperties#crmProject ~ \""+queryText+"\")";
+    //params.query="(status = TEST and product.productPortfolio.id = 10195566) AND (text ~ \""+queryText+"\" or customProperties#crmProject ~ \""+queryText+"\")";
+    params.query="(status = TEST and product.customProperties#availableInWebshop = true) AND (text ~ \""+queryText+"\" or customProperties#crmProject ~ \""+queryText+"\")";
     //and (text ~ "123" or customProperties#crmProject = "12345")
 
 
