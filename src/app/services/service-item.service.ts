@@ -250,6 +250,30 @@ export class ServiceItemService {
     return true;
   }
 
+  /*
+  * Returns a list of available Accounting-Type SystemIDs for the given service-item
+  * Service-Item has to be a SERVICE
+  *
+  */
+  getAvailableAccountingTypes(serviceItem:ServiceItemDto):Array<String>{
+    if (serviceItem._type !== "ServiceDto") {
+          return [];
+
+    }
+    let prop = this.getProductItemCustomPropertyByName(serviceItem.productItem,"availableAccountingTypes");
+    if (prop === undefined){
+        return [];
+
+    }
+    if (!t(prop, 'multiValue.values').isDefined){
+      return [];
+    }
+    //console.log(prop);
+
+    return prop.multiValue.values;
+
+  }
+
   isServicePricingTermBased(serviceItem:ServiceItemDto):boolean{
       if (serviceItem._type !== "ServiceDto") {
           return false;

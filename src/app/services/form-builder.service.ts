@@ -6,34 +6,38 @@ import {UserVisibleAttributeFilterPipe,SplTranslatePipe} from '../shared/shared.
 import {ServiceAttribute} from '../servicemgmt/svcitem-config/service-attribute';
 import  * as constant from '../shared/constants.module';
 
+/**
+ * OBSOLET
+ *
+ */
 @Injectable({
   providedIn: 'root'
 })
 export class FormBuilderService {
-    
-   
+
+
     private formDefinition:any={};
     private itemAttributes:Array<any>;
     private svcItemConfig:any;
- 
+
   constructor() { }
-  
+
   testObservable(): Observable<any>{
-      
+
     let simpleObservable = new Observable((observer) => {
-    
+
     // observable execution
     //observer.next({submission:{'data':{}},formDefinition:{title:'Attribute Form',components:[]}});
     //observer.complete();
     observer.error("fehler");
     observer.complete();
     })
-    
-      
+
+
     //  let formSpec:any = {submission:{'data':{}},formDefinition:{title:'Attribute Form',components:[]}};
     return simpleObservable;
   }
-  
+
   buildModifiedAttributesFromFormData(itemAttributes:Array<any>,submissionData:any){
       let modifiedAttributes:Array<AttributeDto> = []
       let f = new UserVisibleAttributeFilterPipe();
@@ -59,34 +63,34 @@ export class FormBuilderService {
                       }
                 }
                 if (attribute.attributeDef.attributeDef.readonly !== true){
-                   modifiedAttributes.push(attribute); 
+                   modifiedAttributes.push(attribute);
                 }
 
               break;
           }
-          
+
       }
       //Update extended config
       let configAttribute=this.getUpdatedExtendedConfigAttribute();
       if(configAttribute!== undefined){
-         modifiedAttributes.push(configAttribute); 
+         modifiedAttributes.push(configAttribute);
       }
-      
+
       //console.log(modifiedAttributes);
-      return modifiedAttributes;  
+      return modifiedAttributes;
   }
-  
+
   buildServiceItemAttributeForm(itemAttributes:Array<AttributeDto>):any{
-      
+
       let formSpec:any = {submission:{'data':{}},formDefinition:{title:'Attribute Form',components:[]}};
 
-      //let attr = itemAttributes.map(attr => new ServiceAttribute(attr));  
+      //let attr = itemAttributes.map(attr => new ServiceAttribute(attr));
       //console.log(attr);
-      
+
       this.formDefinition={title:'Attribute Form',components:[]};
       this.itemAttributes=itemAttributes;
-      this.loadSvcItemExtendedConfig();      
-      
+      this.loadSvcItemExtendedConfig();
+
       //Nur EndUser-visible Attribute
       let f = new UserVisibleAttributeFilterPipe();
       for (let attribute of f.transform(itemAttributes)){
@@ -101,7 +105,7 @@ export class FormBuilderService {
           }
           formSpec.submission.data[attribute.name] = this.getAttributeValue(attribute);
       }
-      
+
       //Submit-button
       let btn = new Button("updateAttributes");
       btn.label="Speichern";
@@ -109,11 +113,11 @@ export class FormBuilderService {
       btn.event="updateSvcItem";
       btn.disableOnInvalid=true;
       formSpec.formDefinition.components.push(btn);
-      
+
       //console.log(formSpec.submission);
       return formSpec;
   }
-  
+
   private getUpdatedExtendedConfigAttribute():any{
       let attribute =  this.getSvcItemExtendedConfigAttribute();
       if (attribute !== undefined){
@@ -124,50 +128,50 @@ export class FormBuilderService {
       }
       return undefined;
   }
-  
+
   private getAttributeValue(attribute:any):string{
       let attributeValue=null;
-      //let formKey = attribute.name; 
+      //let formKey = attribute.name;
       switch(attribute._type){
           case "AttributeEnumDto":
-            attributeValue = attribute.values[0].value;          
+            attributeValue = attribute.values[0].value;
           break;
           case "AttributeStringDto":
               if (this.isAttributeStoredAsJSON(attribute)){
-                 attributeValue = JSON.parse(attribute.value); 
+                 attributeValue = JSON.parse(attribute.value);
               } else {
-                attributeValue = attribute.value; 
+                attributeValue = attribute.value;
               }
           break;
       }
-      
+
       return attributeValue;
-      
+
   }
-  
+
   private getStringAttributeComponent(attribute:any){
       //console.log(attribute);
-      
-      
+
+
       let filterProperty:CustomPropertyDto = this.getCustomPropertyByName(attribute,constant.ATTRIBUTE_RENDERER);
-      
+
       if (filterProperty===null){
-          return this.getDefaultStringAttributeComponent(attribute); 
+          return this.getDefaultStringAttributeComponent(attribute);
       }
       switch(filterProperty.value){
           case constant.ATTRIBUTE_RENDERER_CONTACT:
-            return this.getContactStringAttributeComponent(attribute); 
+            return this.getContactStringAttributeComponent(attribute);
           case constant.ATTRIBUTE_RENDERER_COMPANY:
-            return this.getCompanyStringAttributeComponent(attribute); 
+            return this.getCompanyStringAttributeComponent(attribute);
           default:
-            return this.getDefaultStringAttributeComponent(attribute); 
+            return this.getDefaultStringAttributeComponent(attribute);
       }
-      
+
   }
-  
+
   /**
    * Erzeugt ein Standard-Testeingabefeld
-   * 
+   *
    */
   private getDefaultStringAttributeComponent(attribute:any){
       let f = new SplTranslatePipe();
@@ -179,10 +183,10 @@ export class FormBuilderService {
          let validator = new ValidateDto();
          validator.required=true;
          validator.minLength=1;
-         text.validate=validator; 
-          
+         text.validate=validator;
+
       }
-      
+
       if (attribute.attributeDef.attributeDef.readonly === true){
          text.disabled=true;
       }
@@ -195,12 +199,12 @@ export class FormBuilderService {
       }
 
       return text;
-      
+
   }
-  
+
   /**
    * Erzeugt ein Eingabe-Feld, dass Personen durchsuchbar macht
-   * 
+   *
    */
   private getContactStringAttributeComponent(attribute:any):any{
       let f = new SplTranslatePipe();
@@ -214,15 +218,15 @@ export class FormBuilderService {
       if (this.isAttributeRequiredForStatus(attribute,'requiredOffered')){
          let validator = new ValidateDto();
          validator.required=true;
-         component.validate=validator; 
+         component.validate=validator;
       }
-      
+
       return component;
   }
-  
+
   /**
    * Erzeugt ein Eingabe-Feld, dass Firmen durchsuchbar macht
-   * 
+   *
    */
   private getCompanyStringAttributeComponent(attribute:any):any{
       let f = new SplTranslatePipe();
@@ -236,54 +240,54 @@ export class FormBuilderService {
       if (this.isAttributeRequiredForStatus(attribute,'requiredOffered')){
          let validator = new ValidateDto();
          validator.required=true;
-         component.validate=validator; 
+         component.validate=validator;
       }
-      
+
       return component;
   }
-  
+
   private getEnumAttributeComponent(attribute:any):any{
-      
-      
+
+
       let filterProperty:CustomPropertyDto = this.getCustomPropertyByName(attribute,constant.ATTRIBUTE_RENDERER);
-      
+
       if ((filterProperty===null)||(filterProperty===undefined)){
-          return this.getDefaultEnumAttributeComponent(attribute); 
+          return this.getDefaultEnumAttributeComponent(attribute);
       }
       switch(filterProperty.value){
           case constant.ATTRIBUTE_RENDERER_BSAPRODUCT:
-            return this.getBSAProductComponent(attribute); 
+            return this.getBSAProductComponent(attribute);
           default:
-            return this.getDefaultEnumAttributeComponent(attribute); 
+            return this.getDefaultEnumAttributeComponent(attribute);
       }
-      
-      
-      
+
+
+
   }
-  
+
   private getDefaultEnumAttributeComponent(attribute:any):any{
       //Pre-Filter ?
       let filteredAttribute=this.preFilterAttributeValues(attribute);
       //console.log(filteredAttribute);
-      
+
       let f = new SplTranslatePipe();
       //Build Form-Component
       let select = new Select(attribute.name);
       select.label = f.transform(attribute.attributeDef.attributeDef.displayName);
       select.description = f.transform(attribute.attributeDef.attributeDef.description);
-      
+
       let valueList:any = attribute.attributeDef.attributeType.values.map(function (val){
-          
+
           let dv = new DataValueDto(val.displayValue.defaultText,val.value);
           return dv;
-          
+
       });
       select.setDataValues(valueList);
-      
+
       //this.formDefinition.components.push(select);
       return select;
   }
-  
+
   private getBSAProductComponent(attribute:any):any{
       //console.log(this.svcItemConfig);
       //BSA-Produkte filtern, nur das was verfuegbar ist anzeigen
@@ -308,24 +312,24 @@ export class FormBuilderService {
                 return true;
             else
                 return false;
-      }); 
+      });
       //replace values with filtered list
       attribute.attributeDef.attributeType.values = filteredValues;
-      
-      return this.getDefaultEnumAttributeComponent(attribute); 
-      
+
+      return this.getDefaultEnumAttributeComponent(attribute);
+
   }
-  
+
   /**
    * Gets the Attribute which stores the extended config
-   * 
+   *
    */
   private getSvcItemExtendedConfigAttribute():any{
      return this.itemAttributes.find(
         a => a.attributeDef.attributeDef.customProperties.properties.some(
             property => property.name === constant.ATTRIBUTE_PROPERTY_ISCONFIGSTORE && property.value === 'true'
         )
-      ); 
+      );
   }
 
   //auslagern in svc-item-service
@@ -336,7 +340,7 @@ export class FormBuilderService {
             property => property.name === 'attributeIsConfigStore' && property.value === 'true'
         )
       );*/
-      let attribute =  this.getSvcItemExtendedConfigAttribute();      
+      let attribute =  this.getSvcItemExtendedConfigAttribute();
       if (attribute !== undefined){
           //console.log('got config attribute ', attribute);
           if ((attribute.value === null)||(attribute.value === "")){
@@ -371,9 +375,9 @@ export class FormBuilderService {
       }
       return false;
   }
-  
+
   private preFilterAttributeValues(attribute:any):any{
-      //get Custom Property attributeFilter 
+      //get Custom Property attributeFilter
       let filterProperty:CustomPropertyDto = this.getCustomPropertyByName(attribute,'attributeFilter');
       //if it exists, there might be a Pre-Filter
       if (filterProperty!=null){
@@ -397,7 +401,7 @@ export class FormBuilderService {
                             return true;
                         else
                             return false;
-                    }); 
+                    });
                     //replace values with filtered list
                     attribute.attributeDef.attributeType.values = filteredValues;
                 }
@@ -405,12 +409,12 @@ export class FormBuilderService {
                 }
 
           }
-          
+
       }
       return attribute;
-      
+
   }
-  
+
   private isJsonString(str:string) {
     try {
         JSON.parse(str);
@@ -419,24 +423,24 @@ export class FormBuilderService {
     }
     return true;
 }
-  
+
   private getEnumAttributeValueByValue(attribute:any,value:string){
-    return attribute.attributeDef.attributeType.values.find(a => a.value === value);      
+    return attribute.attributeDef.attributeType.values.find(a => a.value === value);
   }
 
-  
+
   private getEnumAttributeValues(attribute:any){
       console.log(attribute.attributeDef.attributeType.values);
       return attribute.attributeDef.attributeType.values;
   }
-  
+
   private getAttributeByName(name:string):any{
       return this.itemAttributes.find(a => a.name === name);
   }
-  
+
   private getCustomPropertyByName(attribute:AttributeDto,propertyName:string):CustomPropertyDto{
       let customProperties:CustomPropertiesDto = attribute.attributeDef.attributeDef.customProperties;
       return customProperties.properties.find(i => i.name === propertyName);
   }
-  
+
 }
