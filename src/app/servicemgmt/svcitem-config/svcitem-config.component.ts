@@ -3,6 +3,11 @@ import { ServiceItemDto,AttributeDto } from '../../api/models';
 import {ServiceItemService} from '../../services/service-item.service';
 import { FormBuilderService } from '../../services/form-builder.service';
 
+
+/**
+ * OBSOLETE
+ *
+ */
 @Component({
   selector: 'app-svcitem-config',
   templateUrl: './svcitem-config.component.html',

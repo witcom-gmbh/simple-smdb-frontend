@@ -39,43 +39,20 @@ export class ServicePriceComponent implements OnInit {
 
   }
 
+  /**
+   * Gets all prices that are avialable for a service. A price is available if the AccountingType is selected in the products
+   * CustomProperty 'availableAccountingTypes'
+   *
+   *
+   */
   private getPrice(){
-      let serviceTerm:ServiceTerm = null;
-      if (this.servicItemService.isServicePricingTermBased(this.serviceItem)){
-          serviceTerm = this.servicItemService.getServiceTerms(this.serviceItem);
-          if (serviceTerm === null){
-              //Standard-Laufzeit
-              serviceTerm = this.servicItemService.getDefaultServiceTermForService(this.serviceItem);
-
-          }
-          if (serviceTerm===null){
-              this.alertService.warning('Service-Preisberechnung nicht möglich');
-              return;
-          }
-      } else {
-
-          serviceTerm = {name:"",value:"FIXED"};
-      }
-
-      //get accounting-types for serviceTerms
-      //console.log("AllowedAccountingTypeMapping ",SmdbConfig.accountingTypeMapping.find(m => m.serviceTerms === serviceTerm.value));
-      let allowedAccoutingsTypeMapping = SmdbConfig.accountingTypeMapping.find(m => m.serviceTerms === serviceTerm.value);
-      if (t(allowedAccoutingsTypeMapping,'accountingTypes').isEmptyArray){
-          this.logger.warn("No Accountingtypes found for Service-Terms ",serviceTerm.value);
-          this.alertService.warning('Service-Preisberechnung nicht möglich');
-          return;
-      }
-      let allowedAccoutingsTypes = allowedAccoutingsTypeMapping.accountingTypes;
+      let availableAccountingTypes:Array<String> = this.servicItemService.getAvailableAccountingTypes(this.serviceItem);
       //get prices
       this.servicItemService.getItemPrices(this.serviceItemId).subscribe(
       prices => {
-          //this.logger.debug(prices.accountingType.name);
-          this.prices = prices.filter(p => allowedAccoutingsTypes.find(a=>a.name===p.accountingType.name));
+          this.prices = prices.filter(p => availableAccountingTypes.find(a=> a===p.accountingType.name));
           this.updating=false;
-          //console.log(filteredPrices);
       });
-
-
 
   }
 
