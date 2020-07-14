@@ -25,15 +25,22 @@ export class ProductSearchService {
    * @param queryText
    * @param portfolioId
    */
-  searchProduct(queryText:String,portfolioId:Array<String>):Observable<ProductItemDto[]>{
+  searchProduct(queryText:String,portfolioIds:Array<String>):Observable<ProductItemDto[]>{
 
-    let portfolioList=portfolioId.join(",");
+    let portfolioFilter = "";
+    if (!t(portfolioIds).isEmptyArray){
+      let portfolioList=portfolioIds.join(",");
+      portfolioFilter = "AND productPortfolio.id in ("+portfolioList+")"
+
+    }
+
     if(t(queryText).isNullOrUndefined){
       queryText="*";
     }
 
+
     let params=<ProductSearchV1Service.ProductSearchFindProductItemsByQuery2V1Params>{};
-    params.query="(status != DELETED AND status != DEPRECATED) AND text ~ \""+queryText+"\" AND productPortfolio.id in ("+portfolioList+") AND standardProductCatalog.id > 0";
+    params.query="(status != DELETED AND status != DEPRECATED) AND text ~ \""+queryText+"\" AND customProperties#availableInWebshop = true "+portfolioFilter+ " AND standardProductCatalog.id > 0";
     params.productItemType="Product";
 
     params.dataSelector=<ProductDataSelectorDto>{};
