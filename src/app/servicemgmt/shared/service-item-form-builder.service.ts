@@ -30,6 +30,8 @@ import  * as constants from '../../shared/constants.module';
 import {AbstractBaseComponent,TextComponent,TextAreaComponent,MockAutoCompleteComponent,SelectComponent,NumberComponent} from './form-component-builder/form-components';
 import { SmdbConfig } from './smdb-config';
 import {ValueHandler} from './value-handler.enum';
+import {AttributeProcessorService} from '../../services/services';
+import {AttributeProcessor} from '../../shared/attribute-processor-config';
 
 export interface AttributeSaveData {
     attribute:AttributeDto;
@@ -60,7 +62,8 @@ export class ServiceItemFormBuilder {
     constructor(
         private logger: NGXLogger,
         private searchService:MockApiSearchService,
-        private svcItemService:ServiceItemService
+        private svcItemService:ServiceItemService,
+        private attrProcessor:AttributeProcessorService
         ) {
     }
 
@@ -147,6 +150,7 @@ export class ServiceItemFormBuilder {
 
         let formObservable = new Observable((observer) => {
 
+            //ToDo - deprecate that
             if (this.svcItemService.isServicePricingTermBased(this.serviceItem)){
 
 
@@ -257,13 +261,11 @@ export class ServiceItemFormBuilder {
 
         switch (valueHandler){
             case ValueHandler.DEFAULT_STRING_HANDLER:
-                if (this.isAttributeStoredAsJSON(attribute)){
-                    attribute.value=JSON.stringify(value);
-                } else {
-                    attribute.value = value;
-                }
+                attribute.value = value;
                 return <AttributeSaveData>{attribute:attribute,extendedConfig:null};
-
+            case ValueHandler.JSON_STRING_HANDLER:
+                attribute.value=JSON.stringify(value);
+                return <AttributeSaveData>{attribute:attribute,extendedConfig:null};
             case ValueHandler.DEFAULT_NUMBER_HANDLER:
                 attribute.value = value;
                 return <AttributeSaveData>{attribute:attribute,extendedConfig:null};
@@ -291,42 +293,33 @@ export class ServiceItemFormBuilder {
 
 
   private getEnumAttributeComponent(attribute:any,itemAttributes:Array<any>):any{
-      //get attribute from product - attributes on service-items are inconsistent
-      let productAttribute:AttributeDefAssociationDto = this.productItemAttributes.find(p => p.id === attribute.attributeDef.id);
-      if (t(productAttribute).isNullOrUndefined){
-        return this.getDefaultEnumAttributeComponent(attribute,itemAttributes);
-      }
-      let rendererProperty:CustomPropertyDto = this.getCustomPropertyByName(productAttribute.attributeDef,constants.ATTRIBUTE_RENDERER);
 
-      if (rendererProperty===undefined){
-          return this.getDefaultEnumAttributeComponent(attribute,itemAttributes);
-      }
-      //console.log(rendererProperty);
-      switch(rendererProperty.value){
-          case constants.ATTRIBUTE_RENDERER_BSAPRODUCT:
-            return this.getBSAProductComponent(attribute,itemAttributes);
-          case constants.ATTRIBUTE_RENDERER_READONLY:
-            return this.getReadOnlyEnumAttributeComponent(attribute,itemAttributes);
-          default:
-            return this.getDefaultEnumAttributeComponent(attribute,itemAttributes);
-      }
-    return;
+    let processor:AttributeProcessor= this.getAttributeProcessor(attribute);
+    switch(processor.renderer){
+      case "BSAPRODUCT":
+        return this.getBSAProductComponent(attribute,processor);
+      case "READONLY":
+        return this.getReadOnlyEnumAttributeComponent(attribute,processor);
+      default:
+        return this.getDefaultEnumAttributeComponent(attribute,processor);
+    }
   }
 
   private getEnumAttributeValueByValue(attribute:any,value:string){
     return attribute.attributeDef.attributeType.values.find(a => a.value === value);
   }
 
-  private getDefaultEnumAttributeComponent(attribute:any,itemAttributes:Array<any>):any{
-      return new SelectComponent(attribute,itemAttributes,this.serviceItem).getDynamicModel();
+  private getDefaultEnumAttributeComponent(attribute:any,processor:AttributeProcessor):any{
+      return new SelectComponent(attribute,processor,this.serviceItem).getDynamicModel();
   }
 
-  private getReadOnlyEnumAttributeComponent(attribute:any,itemAttributes:Array<any>):any{
-    let component:SelectComponent = new SelectComponent(attribute,itemAttributes,this.serviceItem);
+  private getReadOnlyEnumAttributeComponent(attribute:any,processor:AttributeProcessor):any{
+    let component:SelectComponent = new SelectComponent(attribute,processor,this.serviceItem);
     return component.Disabled().getDynamicModel();
   }
 
-  private getBSAProductComponent(attribute:any,itemAttributes:Array<any>):any{
+  //Todo - make a component
+  private getBSAProductComponent(attribute:any,processor:AttributeProcessor):any{
 
       //value aus extended config holen
       let savedValue = null;
@@ -373,17 +366,8 @@ export class ServiceItemFormBuilder {
             })
             .filter(p => p.materialNummer!=null);
 
-      console.log(products);
+      //console.log(products);
       //Build selectable BSA-Products
-
-
-      /* BSA 250
-, {
-	"materialNummer": "89896963",
-	"produktoption": "bsa2550",
-	"produktoptionName": "250 MBit/s"
-}
-      */
 
       return new DynamicDslAbfrageControlModel({
         id: "attribute_"+attribute.name,
@@ -408,70 +392,42 @@ export class ServiceItemFormBuilder {
 
   private getDecimalAttributeComponent(attribute:any,itemAttributes:Array<any>):any{
 
-      let productAttribute:AttributeDefAssociationDto = this.productItemAttributes.find(p => p.id === attribute.attributeDef.id);
-      if (t(productAttribute).isNullOrUndefined){
-        return this.getDefaultDecimalAttributeComponent(attribute,itemAttributes);
-      }
-      let rendererProperty:CustomPropertyDto = this.getCustomPropertyByName(productAttribute.attributeDef,constants.ATTRIBUTE_RENDERER);
+    let processor:AttributeProcessor= this.getAttributeProcessor(attribute);
 
-      if (rendererProperty===undefined){
-          return this.getDefaultDecimalAttributeComponent(attribute,itemAttributes);
-      }
+    switch (processor.renderer){
+      default:
+        return this.getDefaultDecimalAttributeComponent(attribute,processor);
 
-      switch(rendererProperty.value){
-
-          default:
-            return this.getDefaultDecimalAttributeComponent(attribute,itemAttributes);
-      }
-
+    }
   }
 
-  private getDefaultDecimalAttributeComponent(attribute,itemAttributes:Array<any>):DynamicInputControlModel<any>{
-
-      return new NumberComponent(attribute,itemAttributes,this.serviceItem).AttributeRules(this.attributeValidationRules).getDynamicModel(); ;
-
+  private getDefaultDecimalAttributeComponent(attribute,processor:AttributeProcessor):DynamicInputControlModel<any>{
+    return new NumberComponent(attribute,processor,this.serviceItem).AttributeRules(this.attributeValidationRules).getDynamicModel(); ;
 
   }
 
   private getStringAttributeComponent(attribute:any,itemAttributes:Array<any>):any{
+    let processor:AttributeProcessor= this.getAttributeProcessor(attribute);
 
-    let productAttribute:AttributeDefAssociationDto = this.productItemAttributes.find(p => p.id === attribute.attributeDef.id);
-    if (t(productAttribute).isNullOrUndefined){
-      return this.getDefaultStringAttributeComponent(attribute,itemAttributes);
+    switch (processor.renderer){
+      case "TEXTAREA":
+        return this.getTextAreaAttributeComponent(attribute,processor);
+      //person
+      //return new MockAutoCompleteComponent(attribute,itemAttributes,this.serviceItem).getDynamicContactModel(this.searchService);
+      //erschliessungs-systeme
+      default:
+        return this.getDefaultStringAttributeComponent(attribute,processor);
+
     }
-    let rendererProperty:CustomPropertyDto = this.getCustomPropertyByName(productAttribute.attributeDef,constants.ATTRIBUTE_RENDERER);
-
-    if (rendererProperty===undefined){
-        return this.getDefaultStringAttributeComponent(attribute,itemAttributes);
-    }
-
-    switch(rendererProperty.value){
-          case constants.ATTRIBUTE_RENDERER_CONTACT:
-            //return this.getContactStringAttributeComponent(attribute);
-            return new MockAutoCompleteComponent(attribute,itemAttributes,this.serviceItem).getDynamicContactModel(this.searchService); ;
-          case constants.ATTRIBUTE_RENDERER_COMPANY:
-            //return this.getCompanyStringAttributeComponent(attribute);
-          case constants.ATTRIBUTE_RENDERER_TEXTAREA:
-            return this.getTextAreaAttributeComponent(attribute,itemAttributes);
-          default:
-            return this.getDefaultStringAttributeComponent(attribute,itemAttributes);
-    }
-
-    //return model;
-  }
-
-  private getDefaultStringAttributeComponent(attribute,itemAttributes:Array<any>):DynamicInputControlModel<any>{
-
-      return new TextComponent(attribute,itemAttributes,this.serviceItem).AttributeRules(this.attributeValidationRules).getDynamicModel(); ;
-
 
   }
 
-  private getTextAreaAttributeComponent(attribute,itemAttributes:Array<any>):DynamicInputControlModel<any>{
+  private getDefaultStringAttributeComponent(attribute,processor:AttributeProcessor):DynamicInputControlModel<any>{
+      return new TextComponent(attribute,processor,this.serviceItem).AttributeRules(this.attributeValidationRules).getDynamicModel(); ;
+  }
 
-      return new TextAreaComponent(attribute,itemAttributes,this.serviceItem).AttributeRules(this.attributeValidationRules).getDynamicModel(); ;
-
-
+  private getTextAreaAttributeComponent(attribute,processor:AttributeProcessor):DynamicInputControlModel<any>{
+      return new TextAreaComponent(attribute,processor,this.serviceItem).AttributeRules(this.attributeValidationRules).getDynamicModel(); ;
   }
 
   public buildValidationRules(){
@@ -613,6 +569,32 @@ export class ServiceItemFormBuilder {
     return prop;
   }
 
+  /**
+   * Get Attribute processor = how the attribute is rendered, stored, etc.
+   * @param attribute
+   */
+
+  private getAttributeProcessor(attribute:AttributeDto):AttributeProcessor{
+    let productAttribute:AttributeDefAssociationDto = this.productItemAttributes.find(p => p.id === attribute.attributeDef.id);
+    if (t(productAttribute).isNullOrUndefined){
+      this.logger.error("Unable to find productAttribute for attribute-definition " + attribute.attributeDef.id);
+      throw new Error("Error when trying to get productattribute");
+      //return this.getDefaultStringAttributeComponent(attribute,itemAttributes);
+    }
+
+    let processorProperty:CustomPropertyDto = this.getCustomPropertyByName(productAttribute.attributeDef,this.attrProcessor.getProcessorProperty());
+    //no processor selected - take default
+    if (t(processorProperty,'value').isNullOrUndefined){
+      //processorId=processorProperty.value;
+      return this.attrProcessor.getDefaultProcessor(attribute);
+    }
+
+
+    let processor:AttributeProcessor=this.attrProcessor.getAttributeProcessor(processorProperty);
+    return processor;
+
+  }
+
 
   /**
    * DEPRECATED
@@ -628,12 +610,27 @@ export class ServiceItemFormBuilder {
   }
 
 
+  /**
+   * Checks if attribute value has to be stored as json-encoded string
+   *
+   * @param attribute
+   */
   private isAttributeStoredAsJSON(attribute:any):boolean{
+
+    let processor:AttributeProcessor = this.getAttributeProcessor(attribute);
+    if (processor.storeFormat=="JSON"){
+      return true;
+    }
+    return false;
+
+    /*
+
       let filterProperty:CustomPropertyDto = this.getCustomPropertyByName(attribute.attributeDef.attributeDef,'attributeStoredAsJson');
       if (t(filterProperty,'value').isTrue){
           return true;
       }
       return false;
+      */
   }
 
   private isAttributeUpdateable(attribute:any):boolean{
@@ -738,8 +735,6 @@ export class ServiceItemFormBuilder {
 
 
   }
-
-
 
 
 }

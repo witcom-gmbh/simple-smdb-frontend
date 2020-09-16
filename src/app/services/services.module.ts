@@ -11,6 +11,7 @@ import { ServiceManagementService } from './service-management.service'
 import { ProductSearchService} from './product-search.service'
 import { ServiceSearchService} from './service-search.service'
 import {ProductService} from './product.service';
+import {AttributeProcessorService} from './attribute-processor.service'
 
 export const API_INTERCEPTOR_PROVIDER: Provider = {
   provide: HTTP_INTERCEPTORS,
@@ -31,7 +32,8 @@ export const API_INTERCEPTOR_PROVIDER: Provider = {
     ServiceManagementService,
     ProductSearchService,
     ServiceSearchService,
-    ProductService
+    ProductService,
+    AttributeProcessorService
   ],
   imports: [
     CommonModule

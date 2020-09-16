@@ -28,7 +28,7 @@ let smdbConfig = {
 
 export const environment = {
   production: false,
-  apiUrl:'apis.dev.witcom.services',
+  apiUrl:'https://apis.dev.witcom.services',
   formioConfig:formioConfig,
   loggerConfig:LOGGER_CONFIG,
   keycloak: keycloakConfig,
