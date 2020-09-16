@@ -2,7 +2,7 @@ import { ServiceItemDto,AttributeDto,CustomPropertyDto } from '../../../api/mode
 import { ServiceItemService } from '../../../services/service-item.service';
 import t from 'typy';
 import {ValueHandler} from '../value-handler.enum';
-
+import {AttributeProcessor} from '../../../shared/attribute-processor-config';
 //import { Select,DataValueDto,TextField,ValidateDto,BaseComponent,Button } from 'formio-schema';
 import {
     DynamicInputControlModel,
@@ -21,16 +21,16 @@ import { UserVisibleAttributeFilterPipe,SplTranslatePipe } from '../../../shared
 export abstract class AbstractBaseComponent {
 
     protected attribute:any;
-    protected itemAttributes:Array<any>;
+    //protected itemAttributes:Array<any>;
     protected serviceItem:ServiceItemDto;
     protected attributeValueHandler:ValueHandler;
     protected enabled:boolean=true;
+    protected processor:AttributeProcessor;
 
-    constructor(attribute:AttributeDto,itemAttributes:Array<any>,serviceItem:ServiceItemDto){
-        //console.log(serviceItem);
+    constructor(attribute:AttributeDto,processor:AttributeProcessor,serviceItem:ServiceItemDto){
         this.attribute = attribute;
         this.serviceItem = serviceItem;
-        this.itemAttributes = itemAttributes;
+        this.processor = processor;
     }
 
     AttributeValueHandler(handler:ValueHandler){
@@ -39,20 +39,13 @@ export abstract class AbstractBaseComponent {
     }
 
     protected getAttributeValueHandler():ValueHandler{
+        //Non default ValueHandler ? then return it
         if(!t(this.attributeValueHandler).isNullOrUndefined){
 
             return this.attributeValueHandler;
         }
-        //Return Default-Handlers depending on Attribute-Type
-        switch(this.attribute._type){
-            case "AttributeEnumDto":
-                return ValueHandler.DEFAULT_ENUM_HANDLER;
-            case "AttributeStringDto":
-                return ValueHandler.DEFAULT_STRING_HANDLER;
-            case "AttributeDecimalDto":
-                return ValueHandler.DEFAULT_NUMBER_HANDLER;
-        }
-        return;
+        //Return Default-Handlers from processor
+        return this.processor.valueHandler
 
     }
 
@@ -123,34 +116,12 @@ export abstract class AbstractBaseComponent {
     }
 
     /**
-     * Cheks if Attribute-Value is stored as JSON
-     *
-     */
-    isAttributeStoredAsJSON():boolean{
-        let filterProperty:CustomPropertyDto = this.getCustomPropertyByName('attributeStoredAsJson');
-        console.log("filterproperty ",filterProperty);
-        //if(!t(filterProperty).isNullOrUndefined){
-        if(!t(filterProperty,'value').isNullOrUndefined){
-              if(filterProperty.value==='true'){
-                  return true;
-              }
-        }
-        return false;
-    }
-
-    /**
      * Checks if attribute is required for service-item-status
-     *
+     * ToDo - use rule/validation engine
      */
     isAttributeRequiredForStatus(status:string):boolean{
-        let filterProperty:CustomPropertyDto = this.getCustomPropertyByName('attributeRequiredForStatus');
-        if(!t(filterProperty,'value').isNullOrUndefined){
-              if(filterProperty.value===status){
-                  return true;
-              }
+      return false;
 
-          }
-        return false;
     }
 
 }

@@ -9,7 +9,7 @@ import {
 } from "@ng-dynamic-forms/core";
 
 import { Select,DataValueDto,TextField,ValidateDto,BaseComponent,Button } from 'formio-schema';
-
+import { ValueHandler } from '../value-handler.enum';
 
 export class TextComponent extends AbstractBaseComponent{
 
@@ -60,10 +60,11 @@ export class TextComponent extends AbstractBaseComponent{
     }
 
     getFormValue():any{
-        if (this.isAttributeStoredAsJSON()){
-                 return JSON.parse(this.attribute.value);
-        }
-        return this.attribute.value;
+      let handler = this.getAttributeValueHandler();
+      if (handler==ValueHandler.JSON_STRING_HANDLER){
+        return JSON.parse(this.attribute.value);
+      }
+      return this.attribute.value;
     }
 
     AttributeRules(rules):any{
