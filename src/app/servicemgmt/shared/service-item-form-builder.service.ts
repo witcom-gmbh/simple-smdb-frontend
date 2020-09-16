@@ -725,7 +725,7 @@ export class ServiceItemFormBuilder {
             this.serviceItem.customProperties.properties.find(p=>p.name==="serviceTerms").value="";
           }
           //Erweiterte Konfiguration speichern
-          if (!t(this.serviceItem.customProperties.properties.find(p=>p.name==="extendedConfiguration")).isNullorUndefined){
+          if (!t(this.serviceItem.customProperties.properties.find(p=>p.name==="extendedConfiguration")).isNullOrUndefined){
             this.serviceItem.customProperties.properties.find(p=>p.name==="extendedConfiguration").value=JSON.stringify({	"attributeConfigs":extendedAttributeConfigs});
           }
 
