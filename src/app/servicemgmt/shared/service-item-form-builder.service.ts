@@ -298,8 +298,11 @@ export class ServiceItemFormBuilder {
     switch(processor.renderer){
       case "BSAPRODUCT":
         return this.getBSAProductComponent(attribute,processor);
-      case "READONLY":
+/*
+Hande Readonly different - attribute is marked as readonly, renderer has to sho wit as readonly
+        case "READONLY":
         return this.getReadOnlyEnumAttributeComponent(attribute,processor);
+*/
       default:
         return this.getDefaultEnumAttributeComponent(attribute,processor);
     }
@@ -368,6 +371,8 @@ export class ServiceItemFormBuilder {
 
       //console.log(products);
       //Build selectable BSA-Products
+
+      //ToDo Return readdonly component id attribute is readonly
 
       return new DynamicDslAbfrageControlModel({
         id: "attribute_"+attribute.name,

@@ -64,6 +64,9 @@ export class TextComponent extends AbstractBaseComponent{
       if (handler==ValueHandler.JSON_STRING_HANDLER){
         return JSON.parse(this.attribute.value);
       }
+      if (this.attribute.value == "null"){
+        return "";
+      }
       return this.attribute.value;
     }
 
