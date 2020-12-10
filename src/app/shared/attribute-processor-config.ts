@@ -33,7 +33,7 @@ export const attributeProcessors:Array<AttributeProcessor> = [
     },
     {
         "id": "/attributeProcessor/readOnly",
-        "renderer": "READONLY",
+        "renderer": "DEFAULT",
         "storeFormat": "PLAIN",
         "validAttributeTypes": [
             "AttributeStringDto","AttributeEnumDto"
@@ -57,6 +57,69 @@ export const attributeProcessors:Array<AttributeProcessor> = [
             "AttributeStringDto"
         ],
         "valueHandler":ValueHandler.JSON_STRING_HANDLER
+    },
+    {
+        "id": "/attributeProcessor/lookup/location",
+        "renderer": "DEFAULT",
+        "storeFormat": "PLAIN",
+        "validAttributeTypes": [
+            "AttributeStringDto"
+        ],
+        "valueHandler":ValueHandler.JSON_STRING_HANDLER
+    },
+    {
+        "id": "/attributeProcessor/lookup/company",
+        "renderer": "DEFAULT",
+        "storeFormat": "PLAIN",
+        "validAttributeTypes": [
+            "AttributeStringDto"
+        ],
+        "valueHandler":ValueHandler.JSON_STRING_HANDLER
+    },
+    {
+        "id": "/attributeProcessor/readOnly/locationReadOnly",
+        "renderer": "DEFAULT",
+        "storeFormat": "PLAIN",
+        "validAttributeTypes": [
+            "AttributeStringDto"
+        ],
+        "valueHandler":ValueHandler.JSON_STRING_HANDLER
+    },
+    {
+        "id": "/attributeProcessor/serviceAccess",
+        "renderer": "DEFAULT",
+        "storeFormat": "PLAIN",
+        "validAttributeTypes": [
+            "AttributeStringDto"
+        ],
+        "valueHandler":ValueHandler.JSON_STRING_HANDLER
+    },
+    {
+        "id": "/attributeProcessor/serviceAccess/fibreAccess",
+        "renderer": "DEFAULT",
+        "storeFormat": "PLAIN",
+        "validAttributeTypes": [
+            "AttributeStringDto"
+        ],
+        "valueHandler":ValueHandler.JSON_STRING_HANDLER
+    },
+    {
+        "id": "/attributeProcessor/serviceAccess/wholebuy",
+        "renderer": "DEFAULT",
+        "storeFormat": "PLAIN",
+        "validAttributeTypes": [
+            "AttributeStringDto"
+        ],
+        "valueHandler":ValueHandler.JSON_STRING_HANDLER
+    },
+    {
+        "id": "/attributeProcessor/serviceAccess/IPBSA",
+        "renderer": "BSAPRODUCT",
+        "storeFormat": "EXTENDED",
+        "validAttributeTypes": [
+            "AttributeEnumDto"
+        ],
+        "valueHandler":ValueHandler.CONFIG_ENUM_HANDLER
     },
     {
         "id": "DEFAULTSTRING",

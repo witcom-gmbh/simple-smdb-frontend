@@ -75,6 +75,14 @@ export abstract class AbstractBaseComponent {
      * Checks if Attribute can be changed
      */
     canChangeAttribute():boolean{
+
+        //custom property readonly
+        if (this.isAttributeReadOnly()){
+          console.log("Readonly" + this.attribute.name);
+          return false;
+        }
+
+        //SMDB internes READONLY = gesperrt
         if (this.attribute.attributeDef.attributeDef.readonly === true){
             return false;
 
@@ -89,6 +97,18 @@ export abstract class AbstractBaseComponent {
 
         return true;
 
+    }
+
+    /**
+     * Cheks if Attribute is flagged as readonly by custom-property
+     */
+    isAttributeReadOnly():boolean{
+
+      let readOnlyProperty:CustomPropertyDto = this.getCustomPropertyByName("attributeReadOnly");
+      if (t(readOnlyProperty,'value').safeString == "true"){
+        return true;
+      }
+      return false;
     }
     /**
      * Get Value-Object of EnumAttribute by Value-Systemname
@@ -112,7 +132,11 @@ export abstract class AbstractBaseComponent {
      */
     getCustomPropertyByName(propertyName:string):CustomPropertyDto{
         let customProperties:any = this.attribute.attributeDef.attributeDef.customProperties;
-        return customProperties.properties.find(i => i.name === propertyName);
+        let prop = customProperties.properties.find(i => i.name === propertyName);
+        if (t(prop).isNullOrUndefined){
+          return undefined;
+        }
+        return prop;
     }
 
     /**
