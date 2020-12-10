@@ -80,17 +80,28 @@ export const SmdbConfig:any = {
 
 		}
 	],
-	"serviceItemStateMapping": [{
-			"state": "INWORK",
-			"mappings": {
-				"contactsRequiredProperty": "contactsRequiredOfferedState"
-			}
+	"contactsRequiredForTransitionMapping": [
+    {
+			"transition": "toReadyForManufacturing",
+			"productProperty": "contactRolesRequiredForConstruction"
+    },
+    {
+			"transition": "toOffered",
+			"productProperty": "contactRolesRequiredForOffer"
+		}
+	],
+	"attributesRequiredForTransitionMapping": [
+    {
+			"transition": "toReadyForManufacturing",
+			"attributeValue": "from_CLEAN_ORDER_to_READY_FOR_MANUFACTURING"
+    },
+    {
+			"transition": "toOffered",
+			"attributeValue": "from_IN_WORK_to_OFFERED"
 		},
-		{
-			"state": "OFFERED",
-			"mappings": {
-				"contactsRequiredProperty": "contactsRequiredCleanOrderState"
-			}
+    {
+			"transition": "toCleanOrder",
+			"attributeValue": "from_OFFERED_to_CLEAN_ORDER"
 		}
 	]
 }
