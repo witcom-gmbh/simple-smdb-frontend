@@ -34,14 +34,14 @@ export class ServiceConfigComponent implements OnInit {
       this.getServiceItem();
       this.subscription = this.svcItemService.updatedBS$
        .subscribe(item => {
-           console.log(item);
+           //console.log(item);
            this.reloadTree();
            });
   }
 
   getServiceItem():void{
      const id = +this.route.snapshot.paramMap.get('id');
-     console.log('get service with id {}',id);
+     //console.log('get service with id {}',id);
      this.svcItemId=id;
      this.serviceId=id;
      this.svcItemService.getItemById(id).subscribe(response => {
