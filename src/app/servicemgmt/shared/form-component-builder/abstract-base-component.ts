@@ -78,7 +78,6 @@ export abstract class AbstractBaseComponent {
 
         //custom property readonly
         if (this.isAttributeReadOnly()){
-          console.log("Readonly" + this.attribute.name);
           return false;
         }
 

@@ -32,6 +32,7 @@ import { SmdbConfig } from './smdb-config';
 import {ValueHandler} from './value-handler.enum';
 import {AttributeProcessorService} from '../../services/services';
 import {AttributeProcessor} from '../../shared/attribute-processor-config';
+import { ResourceLoader } from '@angular/compiler';
 
 export interface AttributeSaveData {
     attribute:AttributeDto;
@@ -75,7 +76,8 @@ export class ServiceItemFormBuilder {
             } else if(t(this.itemAttributes).isNullOrUndefined){
                 observer.error("Service-Item-Attributes not set");
             } else {
-                this.buildValidationRules();
+                //this.buildValidationRules();
+                //this.buildContactValidationRules();
                 let f = new UserVisibleAttributeFilterPipe();
                 for (let attribute of f.transform(this.itemAttributes)){
                   //console.log(attribute);
@@ -407,13 +409,14 @@ Hande Readonly different - attribute is marked as readonly, renderer has to sho 
   }
 
   private getDefaultDecimalAttributeComponent(attribute,processor:AttributeProcessor):DynamicInputControlModel<any>{
-    return new NumberComponent(attribute,processor,this.serviceItem).AttributeRules(this.attributeValidationRules).getDynamicModel(); ;
+    let rules = this.getAttributeValidationRules(attribute);
+    return new NumberComponent(attribute,processor,this.serviceItem).AttributeRules(rules).getDynamicModel(); ;
 
   }
 
   private getStringAttributeComponent(attribute:any,itemAttributes:Array<any>):any{
     let processor:AttributeProcessor= this.getAttributeProcessor(attribute);
-
+    //this.getAttributeValidationRules(attribute);
     switch (processor.renderer){
       case "TEXTAREA":
         return this.getTextAreaAttributeComponent(attribute,processor);
@@ -428,79 +431,171 @@ Hande Readonly different - attribute is marked as readonly, renderer has to sho 
   }
 
   private getDefaultStringAttributeComponent(attribute,processor:AttributeProcessor):DynamicInputControlModel<any>{
-      return new TextComponent(attribute,processor,this.serviceItem).AttributeRules(this.attributeValidationRules).getDynamicModel(); ;
+      let rules = this.getAttributeValidationRules(attribute);
+      return new TextComponent(attribute,processor,this.serviceItem).AttributeRules(rules).getDynamicModel(); ;
   }
 
   private getTextAreaAttributeComponent(attribute,processor:AttributeProcessor):DynamicInputControlModel<any>{
-      return new TextAreaComponent(attribute,processor,this.serviceItem).AttributeRules(this.attributeValidationRules).getDynamicModel(); ;
+      let rules = this.getAttributeValidationRules(attribute);
+      return new TextAreaComponent(attribute,processor,this.serviceItem).AttributeRules(rules).getDynamicModel(); ;
   }
 
-  public buildValidationRules(){
-        this.requiredContactTypes=[];
-        this.attributeValidationRules = [];
+  /**
+   * Creates the list of required contacttypes for the current service-transition
+   */
+  public buildRequiredContactTypes(){
 
-        let configProp = this.getProductItemCustomPropertyByName(this.serviceItem.productItem,"extendedConfiguration");
-        if (configProp===undefined){
-            return;
-        }
-        if (t(this.serviceTransition).isNullOrUndefined){
-            return;
-        }
-        let config = JSON.parse(configProp.value);
+    this.requiredContactTypes=[];
 
-        if (!t(config,"transitionValidation").isArray){
-            return;
-        }
-        const validations = config.transitionValidation;
-        const activeValidationRules = [];
+    if (!t(SmdbConfig.contactsRequiredForTransitionMapping).isArray){
+        this.logger.warn("No Contact-Transition Mapping found");
+        return;
+    }
 
-        //console.log(validations);
-        //let test = validations as Array<any>;
+    const activeReqContacts = [];
+    //Get required contact for this service-transition
+    let reqContacts=this.getRequiredContactsForTransition(this.serviceTransition.transition);
+    //add reqcontacts to collection
+    activeReqContacts.push(reqContacts);
 
-        //console.log(Array.from(validations);
-        let validation = this.getValidationRuleForTransition(validations, this.serviceTransition.transition);
-        if (t(validation).isNullOrUndefined){
-            console.log("no validation rule found for transition " + this.serviceTransition.transition)
-            return;
-        }
-        activeValidationRules.push(validation);
-        if (validation.cumulative === true){
-           if(!t(this.serviceTransition.predecessors).isEmptyArray) {
+    //get all predecessors for current service-transition
+    let predecessors=this.serviceTransition.predecessors;
+    //predecessors=["toOffered", "toCleanOrder"];
+    if(!t(predecessors).isEmptyArray) {
+      //loop through service-transitions
+      for (let p of predecessors){
+          //get required contact for this service-transition
+          let pRule = this.getRequiredContactsForTransition(p);
+          if (pRule !== undefined){
+              activeReqContacts.push(pRule);
+          }
+      }
+    }
 
-            for (let p of this.serviceTransition.predecessors){
-                let pRule = this.getValidationRuleForTransition(validations, p);
-                if (pRule !== undefined){
-                    activeValidationRules.push(pRule);
-                }
-            }
-           }
-        }
+    const uniqueRequiredContacts = [];
+    //remove duplicates
+    activeReqContacts.reduce(function(result,nextItem){return result.concat(nextItem);},[]).map(x => uniqueRequiredContacts.filter(a => a == x).length > 0 ? null : uniqueRequiredContacts.push(x));
 
-
-        const uniqueRequiredContacts = [];
-        activeValidationRules.map(t=>t.requiredContactTypes).reduce(function(result,nextItem){return result.concat(nextItem);},[]).map(x => uniqueRequiredContacts.filter(a => a.id == x.id).length > 0 ? null : uniqueRequiredContacts.push(x));
-        this.requiredContactTypes=uniqueRequiredContacts.map(c => c.name);
-
-        const uniqueAttributeRules = [];
-        activeValidationRules.map(t=>t.attributeRules).reduce(function(result,nextItem){return result.concat(nextItem);},[]).map(x => uniqueAttributeRules.filter(a => a.attributeName == x.attributeName && a.validationType == x.validationType).length > 0 ? null : uniqueAttributeRules.push(x));
-
-        this.attributeValidationRules = uniqueAttributeRules;
-
+    this.requiredContactTypes=uniqueRequiredContacts;
 
   }
 
-  private getValidationRuleForTransition(transitionValidation,transition:string):any{
-        let validation = transitionValidation.find(v => v.name === transition);
-        if (t(validation).isNullOrUndefined){
-            return undefined;
-        }
+  /**
+   * Get RequiredcontactTypes for transition
+   *
+   * @param transition name of service-transition
+   */
+  getRequiredContactsForTransition(transition:String):Array<String>{
+    //Lookup productproperty that stores the required-contact-types
+    let mapping = SmdbConfig.contactsRequiredForTransitionMapping.find(i => i.transition === transition);
 
-        return validation;
+    if (t(mapping,"productProperty").isNullOrUndefined){
+      this.logger.warn("RequiredContactTypes: Mapping for productproperty not found fpr transition " + transition);
+      return [];
+    }
+    let productPropertyName = mapping.productProperty;
+
+    //get custom-property
+    let reqContactsProp = this.getProductItemCustomPropertyByName(this.serviceItem.productItem,productPropertyName);
+    if (t(reqContactsProp,"multiValue.values").isNullOrUndefined){
+      return [];
+    }
+    //The property is a taxonomy, so the prefix has to be removed
+    return reqContactsProp.multiValue.values.map(x => x.substr(constants.TAXONOMY_PREFIX_CONTACT_ROLES.length))
+
   }
+
+
+  /**
+   * Get valaidation-rules for service-transition
+   *
+   * @param attribute
+   */
+
+  getAttributeValidationRules(attribute:AttributeDto):Array<any>{
+
+    let transition = this.serviceTransition.transition;
+    //transition="toReadyForManufacturing";
+    let activeReqAttrs = [];
+    //get rules for current transition
+    let attrRequired = this.getAttributeValidationRuleForTransition(attribute,transition);
+    if (attrRequired !== null){
+      activeReqAttrs.push(attrRequired);
+    }
+
+    //get rules for previous transitions
+    let predecessors=this.serviceTransition.predecessors;
+    //predecessors=["toOffered", "toCleanOrder"];
+    if(!t(predecessors).isEmptyArray) {
+      for (let p of predecessors){
+          let pRule = this.getAttributeValidationRuleForTransition(attribute,p);
+          if (pRule !== null){
+              activeReqAttrs.push(pRule);
+          }
+      }
+    }
+
+    //remove duplicates
+    const uniqueAttributeRules = [];
+    activeReqAttrs.map(t=>t).reduce(function(result,nextItem){return result.concat(nextItem);},[]).map(x => uniqueAttributeRules.filter(a => a.validationType == x.validationType).length > 0 ? null : uniqueAttributeRules.push(x));
+    //this.logger.debug(uniqueAttributeRules);
+
+    return uniqueAttributeRules;
+
+
+  }
+
+  /**
+   * Get attribute validation rules for a single transition
+   *
+   * @param attribute
+   * @param transition
+   */
+  getAttributeValidationRuleForTransition(attribute:AttributeDto,transition:String):any{
+
+    //safety - check if attribute exists in my list of productItemAttributes
+    let productAttribute:AttributeDefAssociationDto = this.productItemAttributes.find(p => p.id === attribute.attributeDef.id);
+    if (t(productAttribute).isNullOrUndefined){
+      this.logger.error("Unable to find productAttribute for attribute-definition " + attribute.attributeDef.id);
+      throw new Error("Error when trying to get productattribute");
+    }
+
+    //get property that stores the definition
+    let requiredProperty:CustomPropertyDto = this.getCustomPropertyByName(productAttribute.attributeDef,constants.ATTRIBUTE_PROPERTY_REQUIRED_FOR_TRANSITION);
+    if (t(requiredProperty,'value').isNullOrUndefined){
+      this.logger.warn("Unable to get attribute value for ",constants.ATTRIBUTE_PROPERTY_REQUIRED_FOR_TRANSITION);
+      return null;
+    }
+
+    //map property-value to a transition
+    let mapping = SmdbConfig.attributesRequiredForTransitionMapping.find(i => i.transition === transition);
+    if (t(mapping,"attributeValue").isNullOrUndefined){
+      //no mapping found
+      //throw error?
+      this.logger.error("Unable to find mapping between property "+requiredProperty+" and transition " + transition);
+      return null;
+    }
+    //this.logger.debug("Attribute-Required-Mapping",mapping);
+    //if the value that is mapped to transition matches the value of the property we are good
+
+    if (mapping.attributeValue == requiredProperty.value){
+      //we only support "required" validation
+      //attribute-name is added for historical reasons
+      let rule = {attributeName:attribute.name,validationType:"required"};
+      return rule;
+    }
+
+    return null;
+  }
+
+
+
 
   public setServiceItem(serviceItem:ServiceItemDto):void{
       this.serviceItem = serviceItem;
-      this.buildValidationRules();
+      this.buildRequiredContactTypes();
+      //this.bui
+      //this.buildContactValidationRules();
 
   }
 

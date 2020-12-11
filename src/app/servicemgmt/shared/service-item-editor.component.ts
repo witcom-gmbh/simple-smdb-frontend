@@ -4,6 +4,7 @@ import { catchError } from 'rxjs/operators';
 import { forkJoin,of} from 'rxjs';
 import t from 'typy';
 import { AlertService } from 'ngx-alerts';
+import { NGXLogger } from 'ngx-logger';
 import { DynamicFormModel, DynamicFormService } from "@ng-dynamic-forms/core";
 import {MockApiSearchService} from '../../services/mock-api-search.service'
 import {
@@ -36,6 +37,7 @@ export class ServiceItemEditorComponent implements OnInit {
 
 
     constructor(
+        private logger: NGXLogger,
         private formService: DynamicFormService,
         private alertService: AlertService,
         private mockSearchService:MockApiSearchService,
@@ -110,25 +112,26 @@ export class ServiceItemEditorComponent implements OnInit {
     }
 
     getFormValidationErrors() {
-  Object.keys(this.formGroup.controls).forEach(key => {
+    Object.keys(this.formGroup.controls).forEach(key => {
 
-  const controlErrors: ValidationErrors = this.formGroup.get(key).errors;
-  if (controlErrors != null) {
-        Object.keys(controlErrors).forEach(keyError => {
-          console.log('Key control: ' + key + ', keyError: ' + keyError + ', err value: ', controlErrors[keyError]);
-        });
-      }
-    });
-  }
+      const controlErrors: ValidationErrors = this.formGroup.get(key).errors;
+      if (controlErrors != null) {
+            Object.keys(controlErrors).forEach(keyError => {
+              this.logger.warn('Form-Element with validation-error:' + key + ', violated validation: ' + keyError + ', error value: ', controlErrors[keyError])
+              //console.log('Key control: ' + key + ', keyError: ' + keyError + ', err value: ', controlErrors[keyError]);
+            });
+          }
+      });
+    }
 
     updateServiceItem(){
         //validierungen ?
-       console.log(this.serviceItem.displayName);
+       //console.log(this.serviceItem.displayName);
        let modifiedItem = this.serviceItemFormBuilder.getUpdatedServiceItemFromModel(this.formModel);
        modifiedItem.displayName = this.serviceItem.displayName;
        let modifiedAttributes = this.serviceItemFormBuilder.getUpdatedAttributesFromModel(this.formModel);
        this.servicItemService.modifyServiceItem(modifiedItem,modifiedAttributes).subscribe(res => {
-           console.log("Contact-Relation", this.formGroup.value.serviceitem_contactRelation);
+           //console.log("Contact-Relation", this.formGroup.value.serviceitem_contactRelation);
            this.serviceItem=res;
            this.alertService.success('Service-Element wurde aktualisiert');
            /*
@@ -179,11 +182,11 @@ export class ServiceItemEditorComponent implements OnInit {
     }
 
     onBlur($event) {
-        console.log(`Material blur event on: ${$event.model.id}: `, $event);
+        //console.log(`Material blur event on: ${$event.model.id}: `, $event);
     }
 
     onChange($event) {
-        console.log(`Material change event on: ${$event.model.id}: `, $event);
+        //console.log(`Material change event on: ${$event.model.id}: `, $event);
         if (t($event,'model.additional.multiplicitySwitch').safeBoolean) {
             //console.log("MP switch ",$event.control.value);
             if($event.control.value){
@@ -200,11 +203,11 @@ export class ServiceItemEditorComponent implements OnInit {
     }
 
     onFocus($event) {
-        console.log(`Material focus event on: ${$event.model.id}: `, $event);
+        //console.log(`Material focus event on: ${$event.model.id}: `, $event);
     }
 
     onMatEvent($event) {
-        console.log(`Material ${$event.type} event on: ${$event.model.id}: `, $event);
+        //console.log(`Material ${$event.type} event on: ${$event.model.id}: `, $event);
     }
 
 

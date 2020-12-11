@@ -36,7 +36,7 @@ export class TextAreaComponent extends AbstractBaseComponent{
         model.validators={};
         //custom validators
         if(!t(this.attributeRules).isEmptyArray) {
-            console.log("rules ",this.attributeRules);
+            //console.log("rules ",this.attributeRules);
             const validators = { };
             for (let rule of this.attributeRules){
                 model.validators[rule.validationType]=null;
