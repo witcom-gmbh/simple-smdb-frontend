@@ -815,15 +815,6 @@ Hande Readonly different - attribute is marked as readonly, renderer has to sho 
       }
 
       if (this.serviceItem._type==="ServiceDto"){
-          //Laufzeit speichern
-          if (this.svcItemService.isServicePricingTermBased(this.serviceItem)){
-            let model = formModel.find(m => m.id==="serviceitem_serviceTerms");
-            if (!t(model).isNullOrUndefined){
-                this.serviceItem.customProperties.properties.find(p=>p.name==="serviceTerms").value=model.value;
-            }
-          } else {
-            this.serviceItem.customProperties.properties.find(p=>p.name==="serviceTerms").value="";
-          }
           //Erweiterte Konfiguration speichern
           if (!t(this.serviceItem.customProperties.properties.find(p=>p.name==="extendedConfiguration")).isNullOrUndefined){
             this.serviceItem.customProperties.properties.find(p=>p.name==="extendedConfiguration").value=JSON.stringify({	"attributeConfigs":extendedAttributeConfigs});
