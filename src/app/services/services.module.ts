@@ -12,6 +12,7 @@ import { ProductSearchService} from './product-search.service'
 import { ServiceSearchService} from './service-search.service'
 import {ProductService} from './product.service';
 import {AttributeProcessorService} from './attribute-processor.service'
+import {SmdbScriptService} from './smdb-script.service';
 
 export const API_INTERCEPTOR_PROVIDER: Provider = {
   provide: HTTP_INTERCEPTORS,
@@ -33,7 +34,8 @@ export const API_INTERCEPTOR_PROVIDER: Provider = {
     ProductSearchService,
     ServiceSearchService,
     ProductService,
-    AttributeProcessorService
+    AttributeProcessorService,
+    SmdbScriptService
   ],
   imports: [
     CommonModule
