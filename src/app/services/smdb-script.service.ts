@@ -25,6 +25,10 @@ export class SmdbScriptService {
 
     return this.getScriptByName("generate_price_info").pipe(
       flatMap((res:AutomatedScriptDto) => {
+
+        if(!res){
+          return throwError('Script for Price-Info not found');
+        }
         let params=<AutomatedScriptingV1Service.AutomatedScriptingExecuteV1Params>{};
         params.scriptId=res.id;
 
@@ -34,27 +38,8 @@ export class SmdbScriptService {
         return this.scriptService.AutomatedScriptingExecuteV1(params) as Observable<Blob>;
 
       })
-      ,catchError(this.handleError)
+      //,catchError(this.handleError)
     );
-
-    //get right script
-    /*
-    return this.getScriptByName("generate_price_info").subscribe(res => {
-      console.log(res);
-
-      let params=<AutomatedScriptingV1Service.AutomatedScriptingExecuteV1Params>{};
-      params.scriptId=res.id;
-
-      return this.scriptService.AutomatedScriptingExecuteV1(params);
-    });
-
-
-
-    let params=<AutomatedScriptingV1Service.AutomatedScriptingExecuteV1Params>{};
-    params.scriptId=1;
-
-    return this.scriptService.AutomatedScriptingExecuteV1(params);
-    */
 
   }
 
