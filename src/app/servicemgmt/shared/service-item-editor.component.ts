@@ -16,7 +16,7 @@ import {
 import { ServiceItemDto,AttributeDto,ServiceItemMultiplicityDto } from '../../api/models';
 import { SmdbPartnerService} from '../../services/smdb-partner.service';
 
-import { ServiceItemService,ProductService} from '../../services/services';
+import { ServiceItemService,ProductService,SmdbScriptService} from '../../services/services';
 
 import { ServiceItemFormBuilder} from './service-item-form-builder.service'
 
@@ -44,7 +44,8 @@ export class ServiceItemEditorComponent implements OnInit {
         private servicItemService:ServiceItemService,
         private smdbPartnerService: SmdbPartnerService,
         private serviceItemFormBuilder:ServiceItemFormBuilder,
-        private productService: ProductService
+        private productService: ProductService,
+        private scriptService: SmdbScriptService
     ) {
     }
     ngOnInit() {
@@ -166,6 +167,23 @@ export class ServiceItemEditorComponent implements OnInit {
                     this.messageService.add(err)
             }
         );*/
+
+    }
+
+
+    getPriceInfo(){
+
+      this.scriptService.getDataSheet(this.serviceItem.id).subscribe((blob) => {
+        var url= window.URL.createObjectURL(blob);
+        window.open(url);
+
+      },err => {
+
+        console.error(err);
+        this.alertService.warning('Preisblatt konnte nicht erstellt werden');
+
+      });
+
 
     }
 
