@@ -4,7 +4,7 @@ import { catchError, map, tap,flatMap } from 'rxjs/operators';
 import {BehaviorSubject} from 'rxjs';
 import t from 'typy';
 import {ServiceTerm} from './ServiceTerm';
-import { ServiceRetrievalV2Service,ServiceInstantiationV3Service,ServiceMgmtV1Service } from '../api/services';
+import { ServiceRetrievalV2Service,ServiceInstantiationV3Service,ServiceMgmtV1Service,ServiceMgmtV2Service } from '../api/services';
 import {
     ContactRelationDto,
     ServiceItemDto,
@@ -16,7 +16,8 @@ import {
     CustomPropertyDto,
     CustomPropertiesDto,
     ServiceItemMultiplicityDto,
-    MoneyItemDto
+    MoneyItemDto,
+    ServiceMgmtUpdateParametersDto
 } from '../api/models';
 
 
@@ -34,7 +35,8 @@ export class ServiceItemService {
 
   constructor(
     private svcRetrieval:ServiceRetrievalV2Service,
-    private svcMgmt:ServiceMgmtV1Service,
+    //private svcMgmt:ServiceMgmtV1Service,
+    private svcMgmt:ServiceMgmtV2Service,
     private svcInstantiation:ServiceInstantiationV3Service
   ) { }
 
@@ -288,10 +290,17 @@ export class ServiceItemService {
 
   }
 
+
+
   updateServiceItem(serviceItem:ServiceItemDto): Observable<ServiceItemDto>{
       var svcItemParams = <ServiceMgmtV1Service.ServiceMgmtUpdateServiceItemV1Params>{serviceItem:serviceItem};
       //Update Service-Item
-      return this.svcMgmt.ServiceMgmtUpdateServiceItemV1(svcItemParams);
+      let params = <ServiceMgmtUpdateParametersDto>{};
+      params._type = "ServiceMgmtUpdateParametersDto";
+      params.serviceItemDto = serviceItem;
+      return this.svcMgmt.ServiceMgmtUpdateV2(params);
+
+      //return this.svcMgmt.ServiceMgmtUpdateServiceItemV2(svcItemParams);
 
   }
 
@@ -327,7 +336,7 @@ export class ServiceItemService {
 
   modifyServiceItem(serviceItem:ServiceItemDto,modifiedAttributes): Observable<ServiceItemDto>{
       //ServiceMgmtV1Service.ServiceMgmtUpdateServiceItemV1Params
-      var svcItemParams = <ServiceMgmtV1Service.ServiceMgmtUpdateServiceItemV1Params>{serviceItem:serviceItem};
+      //var svcItemParams = <ServiceMgmtV1Service.ServiceMgmtUpdateServiceItemV1Params>{serviceItem:serviceItem};
 
       var params = <ServiceInstantiationV3Service.ServiceInstantiationModifyServiceItemAttributesV3Params>{};
 
@@ -343,11 +352,15 @@ export class ServiceItemService {
       params.data = data;
 
 
+      let svcItemParams = <ServiceMgmtUpdateParametersDto>{};
+      svcItemParams._type = "ServiceMgmtUpdateParametersDto";
+      svcItemParams.serviceItemDto = serviceItem;
+
       return this.svcMgmt
       //Update Service-Item
-      .ServiceMgmtUpdateServiceItemV1(svcItemParams)
+      .ServiceMgmtUpdateV2(svcItemParams)
       .pipe(flatMap(res => {
-          //Update Attributes
+          //Update Pricing et al
           return this.svcInstantiation.ServiceInstantiationModifyServiceItemAttributesV3(params)
                 .pipe(tap(data => {
                     //Signal Modification
@@ -373,10 +386,12 @@ export class ServiceItemService {
 
   replaceContactRelations(serviceItemId: number,contactRelations:Array<ContactRelationDto>): Observable<Array<ContactRelationDto>>{
 
-      var params = <ServiceMgmtV1Service.ServiceMgmtReplaceServiceItemContactRelationsV1Params>{};
+      var params = <ServiceMgmtV2Service.ServiceMgmtReplaceContactRelationsV2Params>{};
       params.serviceItemId = serviceItemId;
       params.contactRelations = contactRelations;
-      return this.svcMgmt.ServiceMgmtReplaceServiceItemContactRelationsV1(params);
+      //let myparams;
+      return this.svcMgmt.ServiceMgmtReplaceContactRelationsV2(params);
+      //return this.svcMgmt.ServiceMgmtReplaceServiceItemContactRelationsV1(params);
   }
 
 

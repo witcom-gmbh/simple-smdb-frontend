@@ -6,6 +6,7 @@
   "ServiceInstantiation_V3",
   "ServiceRetrieval_V2",
   "ServiceMgmt_V1",
+  "ServiceMgmt_V2",
   "PartnerRetrieval_V2",
   "PartnerMgmt_V1",
   "ProductSearch_V1",

@@ -2,6 +2,7 @@ import { Component, OnInit,Input, OnChanges, SimpleChange } from '@angular/core'
 import { FormGroup,ValidationErrors } from "@angular/forms";
 import { catchError } from 'rxjs/operators';
 import { forkJoin,of} from 'rxjs';
+import { Router } from "@angular/router";
 import t from 'typy';
 import { AlertService } from 'ngx-alerts';
 import { NGXLogger } from 'ngx-logger';
@@ -16,7 +17,7 @@ import {
 import { ServiceItemDto,AttributeDto,ServiceItemMultiplicityDto } from '../../api/models';
 import { SmdbPartnerService} from '../../services/smdb-partner.service';
 
-import { ServiceItemService,ProductService,SmdbScriptService} from '../../services/services';
+import { ServiceItemService,ProductService,SmdbScriptService,ServiceManagementService} from '../../services/services';
 
 import { ServiceItemFormBuilder} from './service-item-form-builder.service'
 
@@ -45,7 +46,9 @@ export class ServiceItemEditorComponent implements OnInit {
         private smdbPartnerService: SmdbPartnerService,
         private serviceItemFormBuilder:ServiceItemFormBuilder,
         private productService: ProductService,
-        private scriptService: SmdbScriptService
+        private scriptService: SmdbScriptService,
+        private svcMgmtSvc: ServiceManagementService,
+        private router: Router
     ) {
     }
     ngOnInit() {
@@ -170,6 +173,27 @@ export class ServiceItemEditorComponent implements OnInit {
             }
         );*/
 
+    }
+
+    discardService(){
+      if (this.serviceItem.status=="INWORK"){
+        this.svcMgmtSvc.deleteService(this.serviceItem.id).subscribe(
+          res=>{
+            this.router.navigate(['/home']).then( (e) => {
+              if (e) {
+                console.log("Navigation is successful!");
+              } else {
+                console.log("Navigation has failed!");
+              }
+            });
+          },
+          err=>{
+            this.alertService.warning('Service konnte nicht gelöscht werden');
+          }
+        )
+      } else {
+        this.alertService.warning('Service ist nicht im Status "In-Arbeit" - löschen nicht möglich');
+      }
     }
 
 

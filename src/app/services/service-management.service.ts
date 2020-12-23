@@ -3,7 +3,7 @@ import { Observable,throwError  } from 'rxjs';
 import { catchError, map, tap,flatMap } from 'rxjs/operators';
 import {BehaviorSubject} from 'rxjs';
 import t from 'typy';
-import { ServiceRetrievalV2Service,ServiceInstantiationV3Service,ServiceMgmtV1Service } from '../api/services';
+import { ServiceRetrievalV2Service,ServiceInstantiationV3Service,ServiceMgmtV1Service, ServiceMgmtV2Service } from '../api/services';
 import {
     ServiceTreeDataSelectorDto,
     ServiceDataSelectorDto,
@@ -18,8 +18,22 @@ import {
 export class ServiceManagementService {
 
   constructor(
-    private svcInstantiation:ServiceInstantiationV3Service
+    private svcInstantiation:ServiceInstantiationV3Service,
+    private svcMgmt:ServiceMgmtV2Service,
   ) { }
+
+  /**
+   * Discard Service = delete
+   *
+   * @param serviceId
+   */
+  deleteService(serviceId:number):Observable<null>{
+
+    let params = <ServiceMgmtV2Service.ServiceMgmtSetStatusV2Params>{};
+    params.serviceItemId=serviceId;
+    params.newStatus="DELETED";
+    return this.svcMgmt.ServiceMgmtSetStatusV2(params);
+  }
 
   //ServiceInstantiationInstantiateProductV2
   instantiateBusinessServiceFromProdukt(productId:number,testInstantiation:boolean):Observable<BusinessServiceTreeDto>{
