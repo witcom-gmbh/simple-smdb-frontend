@@ -22,6 +22,8 @@ import { AlertModule } from 'ngx-alerts';
 import { KeycloakAngularModule, KeycloakService } from 'keycloak-angular';
 import { AppAuthGuard } from './app.authguard';
 import { initializer } from './utils/app-init';
+import { ProductCatalogComponent } from './products/product-catalog.component';
+import { ProductCardComponent } from './products/product-card.component';
 
 
 //import { FlexLayoutModule } from '@angular/flex-layout';
@@ -56,7 +58,9 @@ export const KEYCLOAK_PROVIDER: Provider = {
 
   declarations: [
     AppComponent,
-    HomeComponent
+    HomeComponent,
+    ProductCatalogComponent,
+    ProductCardComponent
   ],
   imports: [
     BrowserModule,

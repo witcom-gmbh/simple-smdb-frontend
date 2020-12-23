@@ -6,12 +6,15 @@
   "ServiceInstantiation_V3",
   "ServiceRetrieval_V2",
   "ServiceMgmt_V1",
+  "ServiceMgmt_V2",
   "PartnerRetrieval_V2",
   "PartnerMgmt_V1",
   "ProductSearch_V1",
   "ServiceSearch_V1",
   "ProductAttribute_V1",
-  "AutomatedScripting_V1"
+  "AutomatedScripting_V1",
+  "ProductCatalog_V1",
+  "PrimaryAttribute_V1"
   ],
   "ignoreUnusedModels": true,
   "minParamsForContainer": 2,
