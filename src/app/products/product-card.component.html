@@ -1,0 +1,17 @@
+<mat-card class="product-card">
+  <mat-card-header>
+    <mat-card-title>{{product.displayName | splTranslate}}</mat-card-title>
+    <mat-card-subtitle>SLA: {{sla}}</mat-card-subtitle>
+  </mat-card-header>
+  <mat-card-content>
+    <p>
+      {{product.description | splTranslate}}
+    </p>
+    <p *ngIf="previewPrice">
+      Ab {{ previewPrice.money.amount }} {{ previewPrice.money.currency }} {{previewPrice.accountingType.displayName | splTranslate}}
+    </p>
+  </mat-card-content>
+  <mat-card-actions>
+    <button mat-button (click)="createInstance()">Anbieten</button>
+  </mat-card-actions>
+</mat-card>

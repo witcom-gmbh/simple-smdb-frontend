@@ -135,14 +135,16 @@ export class ServiceItemEditorComponent implements OnInit {
            //console.log("Contact-Relation", this.formGroup.value.serviceitem_contactRelation);
            this.serviceItem=res;
            this.alertService.success('Service-Element wurde aktualisiert');
-           /*
-           this.servicItemService.replaceContactRelations(this.serviceItem.id,this.formGroup.value.serviceitem_contactRelation).subscribe(res => {
-            //this.itemContactRelations = res;
-            this.alertService.success('Service-Element wurde aktualisiert');
-            }, err => {console.error(err);
-          }
 
-            );*/
+           //geht nur wenn kundenzuordnung erfolgt
+           //im test sowieso nicht
+          if ((res.status!="TEST") && (res.partner != null)){
+            this.servicItemService.replaceContactRelations(this.serviceItem.id,this.formGroup.value.serviceitem_contactRelation).subscribe(res => {
+              //this.itemContactRelations = res;
+              //this.alertService.success('Ansprechpartner wurden aktualisiert');
+              }, err => {console.error(err);}
+            );
+          }
 
 
           }, err => {

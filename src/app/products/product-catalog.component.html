@@ -1,0 +1,27 @@
+<div>
+  <h4>Produktauswahl</h4>
+<mat-form-field appearance="fill">
+  <mat-label>Produktkatalog w&auml;hlen</mat-label>
+  <mat-select  [(ngModel)]="selectedCatalog" (selectionChange)="changeCatalog(selectedCatalog)">
+    <mat-option *ngFor="let catalog of catalogs" [value]="catalog">
+      {{ catalog.displayName | splTranslate}}
+    </mat-option>
+  </mat-select>
+</mat-form-field>
+<mat-divider></mat-divider>
+<br/>
+<div>
+
+
+<mat-grid-list cols="4" rowHeight="300px">
+
+  <mat-grid-tile *ngFor="let product of productsInCategory">
+    <product-card [product]="product"></product-card>
+  </mat-grid-tile>
+
+</mat-grid-list>
+
+</div>
+
+</div>
+
