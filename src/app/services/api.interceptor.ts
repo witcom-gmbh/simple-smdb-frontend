@@ -29,8 +29,7 @@ export class ApiInterceptor implements HttpInterceptor {
 
     //Fix broken API-Gen if Body is empty
     if ((req.method==="POST") &&(req.body===null)){
-      console.log("fix broken api");
-
+      //console.log("fix broken api");
       req=req.clone({
         headers: req.headers.set('Content-Type', 'application/json'),
       });
