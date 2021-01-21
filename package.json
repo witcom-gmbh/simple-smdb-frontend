@@ -5,6 +5,7 @@
     "ng": "ng",
     "config": "./node_modules/.bin/ts-node -O '{\"module\": \"commonjs\"}' ./set-env.ts",
     "start": "npm run ng-swagger-gen && npm run config -- --environment=dev && ng serve --host=0.0.0.0 --disable-host-check --configuration=dev",
+    "startprod": "npm run ng-swagger-gen && npm run config -- --environment=dev && ng serve --host=0.0.0.0 --disable-host-check --configuration=production",
     "build": "npm run ng-swagger-gen && npm run config -- --environment=prod && ng build --configuration=production",
     "test": "ng test",
     "ng-swagger-gen": "ng-swagger-gen",

@@ -14,7 +14,7 @@ import { environment } from '../../environments/environment';
   providedIn: 'root'
 })
 export class ApiInterceptor implements HttpInterceptor {
-    
+
   constructor(
     private nextRequestState: NextRequestState,
     private errorHandler: ErrorHandlerService
@@ -27,20 +27,24 @@ export class ApiInterceptor implements HttpInterceptor {
       return next.handle(req);
     }
 
-    //Fix broken API-Gen if Body is empty    
+    //Fix broken API-Gen if Body is empty
     if ((req.method==="POST") &&(req.body===null)){
-       req = req.clone({setHeaders: {'Content-Type': 'application/json'}});
+      console.log("fix broken api");
+
+      req=req.clone({
+        headers: req.headers.set('Content-Type', 'application/json'),
+      });
     }
     const ignoreError = this.nextRequestState.ignoreNextError;
     // ... but immediately clear the flag, as it is only for the next request (which is this one)
     this.nextRequestState.ignoreNextError = false;
-    
+
     req = this.nextRequestState.apply(req);
 
     // Also handle errors globally
     return next.handle(req).pipe(
       tap(x => {
-          
+
         if (x instanceof HttpResponse) {
           this.nextRequestState.finish(req);
         }
@@ -54,4 +58,4 @@ export class ApiInterceptor implements HttpInterceptor {
     );
   }
 }
-    
+
