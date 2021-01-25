@@ -57,6 +57,7 @@ dslProduktMapping = [{
 
   setSelectedAddress(address:NominatimAddress){
     this.selectedAddress=address;
+    this._UpdatedSelectedAdress.next(address);
   }
 
   getSelectedAddress(){
@@ -79,7 +80,8 @@ dslProduktMapping = [{
             let saObject = <ServiceAccessObject>{};
             saObject.source=ServiceAccessSource.BSA_MKN;
             saObject.serviceAccessSubType=mapping[0].saSubType;
-            saObject.name=produkt.produktoptionName;
+            saObject.name=produkt.materialNummer;
+            saObject.description=produkt.produktoptionName;
             saObjects.push(saObject);
           }
         }

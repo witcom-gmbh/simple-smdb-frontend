@@ -60,7 +60,7 @@ export const attributeProcessors:Array<AttributeProcessor> = [
     },
     {
         "id": "/attributeProcessor/lookup/location",
-        "renderer": "DEFAULT",
+        "renderer": "LOCATION",
         "storeFormat": "JSON",
         "validAttributeTypes": [
             "AttributeStringDto"

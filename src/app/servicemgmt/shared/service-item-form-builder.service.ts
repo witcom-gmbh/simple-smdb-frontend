@@ -423,6 +423,10 @@ Hande Readonly different - attribute is marked as readonly, renderer has to sho 
       //person
       //return new MockAutoCompleteComponent(attribute,itemAttributes,this.serviceItem).getDynamicContactModel(this.searchService);
       //erschliessungs-systeme
+      case "LOCATION":
+        console.log("Location Renderer!!",JSON.parse(attribute.value));
+        return this.getDefaultStringAttributeComponent(attribute,processor);
+
       default:
         return this.getDefaultStringAttributeComponent(attribute,processor);
 

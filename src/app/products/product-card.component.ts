@@ -5,15 +5,17 @@ import { Router } from "@angular/router";
 import { NGXLogger } from 'ngx-logger';
 import { AlertService } from 'ngx-alerts';
 import {Subscription} from 'rxjs';
+import {map} from 'rxjs/operators';
 import { Observable,throwError,of  } from 'rxjs';
 import { FormControl } from '@angular/forms';
 import {SplTranslatePipe} from '../shared/shared.module';
 import {ProductSearchService,ServiceItemService,ServiceManagementService,ProductService, ServiceAccessAvailabilityCheckService} from '../services/services';
 import {
-    ProductItemDto, ServiceDto, NamedProductCatalogDto, MoneyItemDto, AttributeDto,
+    ProductItemDto, ServiceDto, NamedProductCatalogDto, MoneyItemDto, AttributeDto, AttributeDefAssociationDto,
 } from '../api/models';
 import { TAXONOMY_PREFIX_AVAILABILITY_REQUIREMENTS } from '../shared/constants.module';
-import { ServiceAccessObject } from '../models';
+import { ServiceAccessObject, LocationClassifier, ServiceLocationObject, ServiceLocationSource } from '../models';
+import { NominatimAddress } from '../shared/dfc/dfc';
 
 @Component({
   selector: 'product-card',
@@ -29,7 +31,21 @@ export class ProductCardComponent implements OnInit {
   previewPrice:MoneyItemDto=null;
 
   private availabilitySubscription:Subscription;
-  serviceAccessRequirements:Array<ServiceAccessObject>=[];
+  private availableServiceAccessObjects:Array<ServiceAccessObject>=[];
+
+  private availabilityAdressSubscription:Subscription;
+  private selectedLocation:ServiceLocationObject=<ServiceLocationObject>{};
+
+
+  private requiredServiceAccess:Array<string>=[];
+
+  private saAEndeAttributeDef:AttributeDefAssociationDto;
+  private locationAEndeAttributeDef:AttributeDefAssociationDto;
+
+  private loadingDone:boolean=false;
+
+
+
 
   constructor(
     private logger: NGXLogger,
@@ -48,10 +64,41 @@ export class ProductCardComponent implements OnInit {
 
     //aenderungen verfuegbarkeitsabfrage
     this.availabilitySubscription=this.saCheckService.UpdatedServiceAccessAvailability.subscribe(res=>{
-      this.serviceAccessRequirements=res;
-      //console.log(res);
+      this.availableServiceAccessObjects=res;
+
     });
 
+    this.availabilityAdressSubscription=this.saCheckService.UpdatedSelectedAdress.subscribe(res=>{
+      //console.log(res);
+      //map address to ServiceLocationObject
+      if (res == null){
+        return;
+      }
+
+      this.selectedLocation=<ServiceLocationObject>{};
+      this.selectedLocation.source=ServiceLocationSource.MANUAL;
+      this.selectedLocation.addrCity=res.city;
+      this.selectedLocation.addrStreet=res.road;
+      this.selectedLocation.addrHouseNo=res.house_number;
+      this.selectedLocation.addrZipcode=res.postcode;
+
+    })
+
+    this.requiredServiceAccess = this.productService.getProductAvailabilityRequirements(this.product);
+    console.log(this.requiredServiceAccess);
+
+    //attribute fuer verfuegbarkeitsabfrage
+    this.productService.getAttributeDefByProductItem(this.product.id).subscribe(aDef=>{
+
+
+      this.saAEndeAttributeDef=this.productService.getServiceAccessAttributeDef(aDef,LocationClassifier.aEnde);
+      //console.log(this.saAEndeAttributeDef);
+
+      this.locationAEndeAttributeDef=this.productService.getLocationAttributeDef(aDef,LocationClassifier.aEnde);
+      //console.log(this.locationAEndeAttributeDef);
+      this.loadingDone=true;
+
+    });
 
     //preis schnickschnack
     let previewAccountingType=null;
@@ -103,93 +150,47 @@ export class ProductCardComponent implements OnInit {
 
   }
 
-  isProductAvailable():boolean{
+  private getMatchingServiceAccessObjects():Array<ServiceAccessObject>{
 
-    //Produkt verfuegbar ?
-    let requiredServiceAccess:Array<string>=[];
-    let limitedAvailability=this.product.customProperties.properties.find(it => it.name=="limitedAvailability");
-    if (!t(limitedAvailability).isTrue){
-      //Requirements
-      let availabilityRequirementsProp=this.product.customProperties.properties.find(it => it.name=="availabilityRequirements");
-      if (!t(availabilityRequirementsProp).isNullOrUndefined){
-        if(!t(availabilityRequirementsProp.multiValue.values).isNullOrUndefined){
-          //let values = availabilityRequirementsProp.multiValue.values;
-          let availableSAs=this.serviceAccessRequirements.map(x=>x.serviceAccessSubType);//this.saCheckService.getAvailableServiceAccessObjects().map(x=>x.serviceAccessSubType);
-          //console.log("available SA",availableSAs);
-          requiredServiceAccess = availabilityRequirementsProp.multiValue.values.map(x => x.substr(TAXONOMY_PREFIX_AVAILABILITY_REQUIREMENTS.length))
-          //console.log("required SA",requiredServiceAccess);
-          let isFound = requiredServiceAccess.some( ai => availableSAs.includes(ai));
-
-          if (isFound){
-
-            return true;
-          }
-        }
-      }
-      //dev only
-      return true;
+    if (t(this.requiredServiceAccess).isEmptyArray){
+      return null;
     }
 
+    let that=this;
+    let matches:Array<ServiceAccessObject>=[];
+    this.requiredServiceAccess.forEach(reqSA => {
+      matches=matches.concat(that.availableServiceAccessObjects.filter(avlb => avlb.serviceAccessSubType === reqSA ));
+    });
+    console.log(matches);
 
-    return true;
+    return matches;
+
+  }
+
+  isProductAvailable():boolean{
+
+    if (t(this.requiredServiceAccess).isEmptyArray){
+      return true;
+    }
+    let availableSAs=this.availableServiceAccessObjects.map(x=>x.serviceAccessSubType);
+    //return true if any of the required ServiceAccessObjects is present in the available ServiceAccessObjects
+    return this.requiredServiceAccess.some( ai => availableSAs.includes(ai));
 
   }
 
   createInstance(){
+
+
+    if (this.getMatchingServiceAccessObjects().length != 1){
+      //ToDo : Auswahl aus mehreren. <1 sollte hier nicht vorkommen
+      this.alertService.danger("Es wurde nicht EXAKT EIN Erschließungsystem gefunden !");
+      return;
+    }
+    let selectedServiceAccessObject=this.getMatchingServiceAccessObjects()[0];
+
     this.logger.info("ab gehts");
 
-    //TO - REDUCE COMPLEXITY
-
-    this.productService.getAttributeDefByProductItem(this.product.id).subscribe(prodAttr => {
-      console.log(prodAttr);
-      //get attribute that defines service-Access & location from product.
-      //those have to update after instantiation
-
-      var saProcessor = "/attributeProcessor/serviceAccess"; // what to look for
-      let locationClassifier="aEnde";
-      let matches = [];
-      //
-      prodAttr.forEach(function(e) {
-        //console.log(e.attributeDef.customProperties.properties);
-        //console.log(e.attributeDef.customProperties.properties.filter(p => p.value === needle));
-        if (e.attributeDef.customProperties.properties.filter(p => p.value === saProcessor).length==1){
-          //Service-Access A oder B-Ende ?
-          if (e.attributeDef.customProperties.properties.filter(p => p.value === locationClassifier).length==1)
-          {
-            //Service-Access-Subtypen
-            //Todo
-            matches.push(e);
-          }
-        }
-      });
-      if(matches.length!=1){
-        //throw error
-      }
-      let saAEndeAttributeDef = matches[0];
-
-      var locationProcessor = "/attributeProcessor/lookup/location"; // what to look for
-      //let locationClassifier="aEnde";
-      matches = [];
-      prodAttr.forEach(function(e) {
-        if (e.attributeDef.customProperties.properties.filter(p => p.value === locationProcessor).length==1){
-          //Service-Access A oder B-Ende ?
-          if (e.attributeDef.customProperties.properties.filter(p => p.value === locationClassifier).length==1)
-          {
-            matches.push(e);
-          }
-        }
-      });
-      if(matches.length!=1){
-        //throw error
-      }
-
-      let locationAEndeAttributeDef = matches[0];
-
-      console.log(saAEndeAttributeDef);
-      console.log(locationAEndeAttributeDef);
-
-
-      this.serviceMgmt.instantiateBusinessServiceFromProdukt(this.product.id,false).subscribe(
+    this.serviceMgmt.instantiateBusinessServiceFromProdukt(this.product.id,false).subscribe(
       response => {
           //Todo aus dem Service-Tree das Service-Element filtern, das aus dem Produkt instanziiert wurde - hier ist es immer das erste
           //console.log(response.serviceGroups[0].services[0].service);
@@ -203,18 +204,24 @@ export class ProductCardComponent implements OnInit {
 
           this.svcItemService.getItemAttributes(serviceItem.id).subscribe(svcAttrs => {
             //service-access a-ende
-            let saAEndeAttributes = svcAttrs.filter(attr => attr.name === saAEndeAttributeDef.attributeDef.name);
+            let saAEndeAttributes = svcAttrs.filter(attr => attr.name === this.saAEndeAttributeDef.attributeDef.name);
             if (saAEndeAttributes.length==1){
               let attr:any = saAEndeAttributes[0];
               //get service-access
-              attr.value='{attrtest:"value"}';
-              //attr.v
+              //JSON.stringify(selectedServiceAccessObject);
+              attr.value=JSON.stringify(selectedServiceAccessObject);
               attrsToUpdate.push(attr);
             }
             //location a-ende
+            let locationAEndeAttributes = svcAttrs.filter(attr => attr.name === this.locationAEndeAttributeDef.attributeDef.name);
+            if (locationAEndeAttributes.length==1){
+              let attr:any = locationAEndeAttributes[0];
+              //JSON.stringify(selectedServiceAccessObject);
+              attr.value=JSON.stringify(this.selectedLocation);
+              attrsToUpdate.push(attr);
+            }
 
-
-            console.log("attr to update",attrsToUpdate);
+            //console.log("attr to update",attrsToUpdate);
             this.svcItemService.modifyServiceItem(serviceItem,attrsToUpdate).subscribe(updateRes => {
               let serviceId = updateRes.id;
               this.router.navigate(['/service-config', serviceId]).then( (e) => {
@@ -236,10 +243,7 @@ export class ProductCardComponent implements OnInit {
            this.alertService.danger('Service konnte nicht angelegt werden');
 
         });
-
-
-
-  })};
+  }
 
 
 }

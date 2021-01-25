@@ -1,5 +1,5 @@
 export enum ServiceLocationSource {
-  NOMINATIM,
-  LOCATION_DB,
-  MANUAL
+  NOMINATIM="NOMINATIM",
+  LOCATION_DB="LOCATION_DB",
+  MANUAL="MANUAL"
 }
