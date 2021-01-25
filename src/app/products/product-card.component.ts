@@ -10,7 +10,7 @@ import { FormControl } from '@angular/forms';
 import {SplTranslatePipe} from '../shared/shared.module';
 import {ProductSearchService,ServiceItemService,ServiceManagementService,ProductService, ServiceAccessAvailabilityCheckService} from '../services/services';
 import {
-    ProductItemDto, ServiceDto, NamedProductCatalogDto, MoneyItemDto,
+    ProductItemDto, ServiceDto, NamedProductCatalogDto, MoneyItemDto, AttributeDto,
 } from '../api/models';
 import { TAXONOMY_PREFIX_AVAILABILITY_REQUIREMENTS } from '../shared/constants.module';
 import { ServiceAccessObject } from '../models';
@@ -39,11 +39,12 @@ export class ProductCardComponent implements OnInit {
         private productService: ProductService,
         private svcItemService: ServiceItemService,
         private router: Router,
-        private saCheckService: ServiceAccessAvailabilityCheckService
+        private saCheckService: ServiceAccessAvailabilityCheckService,
+        private serviceItemSvc: ServiceItemService
   ) { }
 
   ngOnInit() {
-    //this.logger.debug("got product",this.product);
+    this.logger.debug("got product",this.product);
 
     //aenderungen verfuegbarkeitsabfrage
     this.availabilitySubscription=this.saCheckService.UpdatedServiceAccessAvailability.subscribe(res=>{
@@ -107,7 +108,6 @@ export class ProductCardComponent implements OnInit {
     //Produkt verfuegbar ?
     let requiredServiceAccess:Array<string>=[];
     let limitedAvailability=this.product.customProperties.properties.find(it => it.name=="limitedAvailability");
-    //console.log("limited",limitedAvailability);
     if (!t(limitedAvailability).isTrue){
       //Requirements
       let availabilityRequirementsProp=this.product.customProperties.properties.find(it => it.name=="availabilityRequirements");
@@ -119,17 +119,18 @@ export class ProductCardComponent implements OnInit {
           requiredServiceAccess = availabilityRequirementsProp.multiValue.values.map(x => x.substr(TAXONOMY_PREFIX_AVAILABILITY_REQUIREMENTS.length))
           //console.log("required SA",requiredServiceAccess);
           let isFound = requiredServiceAccess.some( ai => availableSAs.includes(ai));
-          //console.log(isFound);
+
           if (isFound){
+
             return true;
           }
-
         }
       }
-      return false;
+      //dev only
+      return true;
     }
 
-    //console.log("i am here");
+
     return true;
 
   }
@@ -137,36 +138,108 @@ export class ProductCardComponent implements OnInit {
   createInstance(){
     this.logger.info("ab gehts");
 
-    this.serviceMgmt.instantiateBusinessServiceFromProdukt(this.product.id,false).subscribe(
+    //TO - REDUCE COMPLEXITY
+
+    this.productService.getAttributeDefByProductItem(this.product.id).subscribe(prodAttr => {
+      console.log(prodAttr);
+      //get attribute that defines service-Access & location from product.
+      //those have to update after instantiation
+
+      var saProcessor = "/attributeProcessor/serviceAccess"; // what to look for
+      let locationClassifier="aEnde";
+      let matches = [];
+      //
+      prodAttr.forEach(function(e) {
+        //console.log(e.attributeDef.customProperties.properties);
+        //console.log(e.attributeDef.customProperties.properties.filter(p => p.value === needle));
+        if (e.attributeDef.customProperties.properties.filter(p => p.value === saProcessor).length==1){
+          //Service-Access A oder B-Ende ?
+          if (e.attributeDef.customProperties.properties.filter(p => p.value === locationClassifier).length==1)
+          {
+            //Service-Access-Subtypen
+            //Todo
+            matches.push(e);
+          }
+        }
+      });
+      if(matches.length!=1){
+        //throw error
+      }
+      let saAEndeAttributeDef = matches[0];
+
+      var locationProcessor = "/attributeProcessor/lookup/location"; // what to look for
+      //let locationClassifier="aEnde";
+      matches = [];
+      prodAttr.forEach(function(e) {
+        if (e.attributeDef.customProperties.properties.filter(p => p.value === locationProcessor).length==1){
+          //Service-Access A oder B-Ende ?
+          if (e.attributeDef.customProperties.properties.filter(p => p.value === locationClassifier).length==1)
+          {
+            matches.push(e);
+          }
+        }
+      });
+      if(matches.length!=1){
+        //throw error
+      }
+
+      let locationAEndeAttributeDef = matches[0];
+
+      console.log(saAEndeAttributeDef);
+      console.log(locationAEndeAttributeDef);
+
+
+      this.serviceMgmt.instantiateBusinessServiceFromProdukt(this.product.id,false).subscribe(
       response => {
           //Todo aus dem Service-Tree das Service-Element filtern, das aus dem Produkt instanziiert wurde - hier ist es immer das erste
-          //console.log(response.serviceGroups[0].services[0].service.id);
+          //console.log(response.serviceGroups[0].services[0].service);
 
           let serviceItem:ServiceDto = response.serviceGroups[0].services[0].service;
           //update service item
           //serviceItem.description = "this is a test";
           //serviceItem.customProperties.properties[3].value="12345";
+          console.log(serviceItem);
+          let attrsToUpdate=[];
 
-          this.svcItemService.updateServiceItem(serviceItem).subscribe(updateRes => {
-            let serviceId = updateRes.id;
-            this.router.navigate(['/service-config', serviceId]).then( (e) => {
-              if (e) {
-                console.log("Navigation is successful!");
-              } else {
-                console.log("Navigation has failed!");
-              }
-            });
-          },err => {
-            console.log(err);
-            this.alertService.danger('Service konnte nicht aktualisiert werden');
-          });
-      },
+          this.svcItemService.getItemAttributes(serviceItem.id).subscribe(svcAttrs => {
+            //service-access a-ende
+            let saAEndeAttributes = svcAttrs.filter(attr => attr.name === saAEndeAttributeDef.attributeDef.name);
+            if (saAEndeAttributes.length==1){
+              let attr:any = saAEndeAttributes[0];
+              //get service-access
+              attr.value='{attrtest:"value"}';
+              //attr.v
+              attrsToUpdate.push(attr);
+            }
+            //location a-ende
+
+
+            console.log("attr to update",attrsToUpdate);
+            this.svcItemService.modifyServiceItem(serviceItem,attrsToUpdate).subscribe(updateRes => {
+              let serviceId = updateRes.id;
+              this.router.navigate(['/service-config', serviceId]).then( (e) => {
+                if (e) {
+                  console.log("Navigation is successful!");
+                } else {
+                  console.log("Navigation has failed!");
+                }
+              });
+              },err => {
+                console.log(err);
+                this.alertService.danger('Service konnte nicht aktualisiert werden');
+              });
+          }
+
+      )},
         err => {
            console.log(err);
            this.alertService.danger('Service konnte nicht angelegt werden');
 
         });
 
-  }
+
+
+  })};
+
 
 }
