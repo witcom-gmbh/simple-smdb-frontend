@@ -6,6 +6,8 @@ import {UserVisibleAttributeFilterPipe} from './filter-user-visible-attribute.pi
 import { SvcItemDisplayNamePipe } from './svc-item-display-name.pipe';
 import { SplTranslatePipe } from './spl-translate.pipe';
 import { SimpleUserInfoComponent } from './simple-user-info/simple-user-info.component';
+import {ServiceAccessAvailabilityCheckComponent} from './components/service-access-availability-check.component';
+import {AppMaterialModule} from './app-material.module';
 export {UserVisibleAttributeFilterPipe} from './filter-user-visible-attribute.pipe';
 export { SplTranslatePipe } from './spl-translate.pipe';
 
@@ -14,12 +16,14 @@ export { SplTranslatePipe } from './spl-translate.pipe';
   UserVisibleAttributeFilterPipe,
   SvcItemDisplayNamePipe,
   SplTranslatePipe,
-  SimpleUserInfoComponent
+  SimpleUserInfoComponent,
+  ServiceAccessAvailabilityCheckComponent
   ],
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    FormsModule
+    FormsModule,
+    AppMaterialModule
   ],
   exports:[
 
@@ -28,8 +32,8 @@ export { SplTranslatePipe } from './spl-translate.pipe';
     UserVisibleAttributeFilterPipe,
     SvcItemDisplayNamePipe,
     SplTranslatePipe,
-    SimpleUserInfoComponent
-
+    SimpleUserInfoComponent,
+    ServiceAccessAvailabilityCheckComponent
   ]
 })
 export class SharedModule { }

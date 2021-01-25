@@ -1,5 +1,10 @@
 <div>
-  <h4>Produktauswahl</h4>
+
+<h4>Verfügbarkeit abfragen</h4>
+<service-access-availability-check></service-access-availability-check>
+
+<h4>Produktauswahl</h4>
+
 <mat-form-field appearance="fill">
   <mat-label>Produktkatalog w&auml;hlen</mat-label>
   <mat-select  [(ngModel)]="selectedCatalog" (selectionChange)="changeCatalog(selectedCatalog)">
@@ -10,6 +15,7 @@
 </mat-form-field>
 <mat-divider></mat-divider>
 <br/>
+
 <div>
 
 
