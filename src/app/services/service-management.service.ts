@@ -48,6 +48,7 @@ export class ServiceManagementService {
       var serviceSelector = <ServiceDataSelectorDto>{};
       serviceSelector._type="ServiceDataSelectorDto";
       serviceSelector.addCustomProperties=true;
+      serviceSelector.addAttributeInfo=true;
       dataSelector.serviceDataSelector = serviceSelector;
 
       dataSelector._type="ServiceTreeDataSelectorDto";

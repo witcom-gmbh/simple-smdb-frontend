@@ -1,0 +1,26 @@
+
+
+<div class="row">
+  <div class="col-10">
+
+  <mat-form-field class="example-full-width">
+      <input type="text" placeholder="Nach Adresse suchen" aria-label="Number" matInput [formControl]="adressSearchControl" [matAutocomplete]="autoAddress">
+
+    <mat-autocomplete #autoAddress="matAutocomplete" [displayWith]="displayAddressFn" (optionSelected)="onAddressSelectionChanged($event)">
+      <mat-option *ngFor="let address of filteredAddresses | async" [value]="address">
+        <span *ngIf="address">{{address.displayName}}</span>
+      </mat-option>
+    </mat-autocomplete>
+    </mat-form-field>
+  </div>
+
+  <div class="col-2">
+  <button [disabled]="!rechercheAddressValid()||rechercheRunning" type="button" class="btn btn-primary" (click)="availablilityLookup()">Verfügbarkeitsabfrage starten</button>
+  </div>
+  <div class="col-6" *ngIf="serviceAccessAvailable.length > 0">
+    Aktuell gewählter Standort: {{ selectedAddress.displayName }}
+  </div>
+</div>
+<!--
+ {{serviceAccessAvailable|json}}
+-->

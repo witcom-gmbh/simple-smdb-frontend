@@ -1,0 +1,6 @@
+export enum ServiceAccessSource {
+  SERVICEACCESS_DB = "SERVICEACCESS_DB",
+  BSA_MKN ="BSA_MKN",
+  DSLAM_LISTE ="DSLAM_LISTE",
+  MANUAL="MANUAL"
+}

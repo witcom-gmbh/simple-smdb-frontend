@@ -9,3 +9,6 @@ export * from './service-search.service';
 export * from './product.service';
 export * from './attribute-processor.service';
 export * from './smdb-script.service';
+export * from './availabilitycheck/service-access-availability-check.service';
+export * from './availabilitycheck/dslamavailability-check.service';
+export * from './availabilitycheck/bitstream-availability-check.service';

@@ -10,3 +10,4 @@ export const ATTRIBUTE_PROPERTY_REQUIRED_FOR_TRANSITION='attributeRequiredForTra
 export const SERVICE_PROPERTY_REQUIRED_CONTACT_ROLES_FOR_OFFER='contactRolesRequiredForOffer';
 export const SERVICE_PROPERTY_REQUIRED_CONTACT_ROLES_FOR_CONSTRUCTION='contactRolesRequiredForOffer';
 export const TAXONOMY_PREFIX_CONTACT_ROLES='/contactRoles/';
+export const TAXONOMY_PREFIX_AVAILABILITY_REQUIREMENTS='/availabilityRequirementOptions/CATEGORY_SERVICEACCESS/';

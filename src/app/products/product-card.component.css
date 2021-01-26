@@ -2,6 +2,21 @@
   max-width: 300px;
 }
 
+.green-icon {
+    color: green;
+}
+.green-icon svg {
+    fill: green;
+}
+
+.red-icon {
+    color: red;
+}
+
+.red-icon svg {
+    fill: red;
+}
+
 .example-header-image {
   background-image: url('https://material.angular.io/assets/img/examples/shiba1.jpg');
   background-size: cover;

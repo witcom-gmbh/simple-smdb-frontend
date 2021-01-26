@@ -8,10 +8,11 @@ import {Subscription} from 'rxjs';
 import { Observable,throwError,of  } from 'rxjs';
 import { FormControl } from '@angular/forms';
 import {SplTranslatePipe} from '../shared/shared.module';
-import {ProductSearchService,ServiceItemService,ServiceManagementService} from '../services/services';
+import {ProductSearchService,ServiceItemService,ServiceManagementService, ServiceAccessAvailabilityCheckService} from '../services/services';
 import {
     ProductItemDto, ServiceDto, NamedProductCatalogDto,
 } from '../api/models';
+import { ServiceAccessObject } from '../models';
 
 
 @Component({
@@ -25,22 +26,34 @@ export class ProductCatalogComponent implements OnInit {
   selectedCatalog:NamedProductCatalogDto;
   productsInCategory:ProductItemDto[];
 
+  private availabilitySubscription:Subscription;
+  serviceAccessRequirements:Array<ServiceAccessObject>=[];
+
   constructor(
 
         private logger: NGXLogger,
         private alertService: AlertService,
-        //private serviceMgmt:ServiceManagementService,
         private router: Router,
         private productSearchService: ProductSearchService,
-        //private svcItemService: ServiceItemService
-
+        private saCheckService: ServiceAccessAvailabilityCheckService
 
   ) { }
 
   ngOnInit() {
+/*
+    this.availabilitySubscription=this.saCheckService.UpdatedServiceAccessAvailability.subscribe(res=>{
+      this.serviceAccessRequirements=res;
+      //console.log(res);
+    });
+    */
 
     this.productSearchService.getAllNamedCatalogs().subscribe(res => {
       this.catalogs=res;
+      if (res.length>0){
+        this.selectedCatalog=res[0];
+
+        this.changeCatalog(res[0]);
+      }
     });
 
 
