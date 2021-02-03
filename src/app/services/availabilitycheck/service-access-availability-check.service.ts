@@ -4,12 +4,14 @@ import { DSLAMAvailabilityCheckService } from './dslamavailability-check.service
 import { NominatimAddress } from '../../models/nominatim-address';
 import {
   map,
-  merge
+  merge,
+  catchError
 } from 'rxjs/operators';
-import { forkJoin,Observable, BehaviorSubject } from 'rxjs';
+import { forkJoin,Observable, BehaviorSubject, of } from 'rxjs';
 
 import t from 'typy';
 import { ServiceAccessObject, ServiceAccessSource } from '../../models';
+import { HALwlCheckService } from './halwl-check.service';
 
 @Injectable({
   providedIn: 'root'
@@ -43,7 +45,8 @@ dslProduktMapping = [{
 
   constructor(
     private bsaCheckService:BitstreamAvailabilityCheckService,
-    private dslamCheckService:DSLAMAvailabilityCheckService
+    private dslamCheckService:DSLAMAvailabilityCheckService,
+    private halwlCheckService:HALwlCheckService
   ) { }
 
   setAvailableServiceAccessObjects(objects:Array<ServiceAccessObject>){
@@ -91,11 +94,20 @@ dslProduktMapping = [{
     );
     //fake
     let dslamCheck = this.dslamCheckService.checkForDSLAM();
+    let lwlCheck = this.halwlCheckService.checkForServiceAccess();
 
-    return forkJoin(bsaCheck,dslamCheck).pipe(
+    return forkJoin(bsaCheck,dslamCheck,lwlCheck).pipe(
+      catchError(err => {
+        console.log(err);
+        //this.alertService.warning("DSL-Recherche-Fehler");
+        return of([]);
+      }
+      ),
       map(results => {
         let emptyArray:Array<ServiceAccessObject> = [];
-        emptyArray =  emptyArray.concat(results[0],results[1]);
+        for (var result of results) {
+          emptyArray =  emptyArray.concat(result);
+        }
         //remove nulls
         return emptyArray.filter(Boolean);;
       }

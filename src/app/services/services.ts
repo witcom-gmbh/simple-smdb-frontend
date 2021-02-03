@@ -12,3 +12,4 @@ export * from './smdb-script.service';
 export * from './availabilitycheck/service-access-availability-check.service';
 export * from './availabilitycheck/dslamavailability-check.service';
 export * from './availabilitycheck/bitstream-availability-check.service';
+export * from './availabilitycheck/halwl-check.service';

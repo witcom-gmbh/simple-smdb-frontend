@@ -140,9 +140,11 @@ export class ServiceAccessAvailabilityCheckComponent implements OnInit {
       if(t(this.selectedAddress.city).isEmptyString){
         return false;
       }
+      /*
       if(t(this.selectedAddress.house_number).isEmptyString){
         return false;
       }
+      */
       if(t(this.selectedAddress.postcode).isEmptyString){
         return false;
       }

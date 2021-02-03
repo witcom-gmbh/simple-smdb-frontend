@@ -6,23 +6,31 @@ import {ServiceAccessObject, ServiceAccessSource,ServiceAccessStatus} from '../.
 @Injectable({
   providedIn: 'root'
 })
-export class DSLAMAvailabilityCheckService {
+export class HALwlCheckService {
 
   constructor() { }
 
-  checkForDSLAM():Observable<Array<ServiceAccessObject>>{
+    checkForServiceAccess():Observable<Array<ServiceAccessObject>>{
 
     //create fake Service-Access-Object
     let saObjects:Array<ServiceAccessObject>=[];
 
     let saObject = <ServiceAccessObject>{};
-    saObject.source=ServiceAccessSource.DSLAM_LISTE;
-    saObject.serviceAccessSubType="DSLAM";
-    saObject.name="MY RANDOM DSLAM";
-    saObject.status=ServiceAccessStatus.ACTIVE;
+    saObject.source=ServiceAccessSource.SERVICEACCESS_DB;
+    saObject.serviceAccessSubType="HA_LWL";
+    saObject.name="MY RANDOM HALWL";
+
+    var random_boolean_state = Math.random() < 0.5;
+    if (random_boolean_state){
+      saObject.status=ServiceAccessStatus.ACTIVE;
+    } else {
+      saObject.status=ServiceAccessStatus.PLANNING;
+    }
+
     saObjects.push(saObject);
 
-    var random_boolean = Math.random() < 0.5;
+    var random_boolean = Math.random() < 0.7;
+
     if (random_boolean){
       return of(saObjects);
     }
