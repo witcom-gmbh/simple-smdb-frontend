@@ -5,9 +5,9 @@ import { NominatimAddress } from '../../models/nominatim-address';
 import { AlertService } from 'ngx-alerts';
 import { BSAAbfrageProdukt } from '../../models';
 
-import {throwError, Observable} from 'rxjs';
+import {throwError, Observable, of} from 'rxjs';
 import {
-  map
+  map, catchError
 } from 'rxjs/operators';
 
 import t from 'typy';
@@ -30,10 +30,10 @@ export class BitstreamAvailabilityCheckService {
   lookupDSLProdukt(address:NominatimAddress):Observable<Array<BSAAbfrageProdukt>>{
 
     //adress valid ?
-    if (!this.rechercheAddressValid()){
+    if (!this.rechercheAddressValid(address)){
       //console.log("Recherche-Adresse ungültig");
-      this.alertService.warning("Recherche-Adresse ungültig");
-      return;
+      this.alertService.info("Recherche-Adresse für BSA-Abfrage ungültig");
+      return of([]);
     }
 
 
@@ -46,19 +46,34 @@ export class BitstreamAvailabilityCheckService {
     this.availableBSAProducts=[];
 
     return this.dslRechercheService.addressSearch(addr).pipe(
-
+      catchError(err => {
+        //console.log(err);
+        this.alertService.warning("DSL-Recherche-Fehler");
+        return of([]);
+      }
+      ),
       map(result => {
-        return this.parseRechercheResult(result);
-        }, () => {
-          this.alertService.warning("DSL-Recherche-Fehler");
-          }
+        try {
+          return this.parseRechercheResult(result);
+        } catch (err){
+          //console.log(err);
+          this.alertService.warning("DSL-Recherche-Fehler " + err);
+          return [];
+        }
+        }
       )
 
     );
   }
 
-  private rechercheAddressValid():boolean{
-        return true;
+  private rechercheAddressValid(address:NominatimAddress):boolean{
+
+    if (t(address.house_number).isEmptyString){return false;}
+    if (t(address.road).isEmptyString){return false;}
+    if (t(address.postcode).isEmptyString){return false;}
+    if (t(address.city).isEmptyString){return false;}
+
+    return true;
   }
 
 
@@ -81,15 +96,15 @@ export class BitstreamAvailabilityCheckService {
             case "10004":
             case "10005":
                 //this.populateRefineRecherche(result);
-                throw throwError("Adresse nicht eindeutig");
+                throw("Adresse nicht eindeutig");
                 //break;
             case "10202":
             case "10203":
             case "10204":
-                throw throwError("DSL-Recherche-Fehler: " + ergebnis.RueckmeldungText );
+                throw("DSL-Recherche-Fehler: " + ergebnis.RueckmeldungText );
                 //break;
             default:
-                throw throwError("DSL-Recherche-Fehler: " + ergebnis.RueckmeldungText );
+                throw("DSL-Recherche-Fehler: " + ergebnis.RueckmeldungText );
         }
     }
 

@@ -92,10 +92,10 @@ export class ProductCardComponent implements OnInit {
 
 
       this.saAEndeAttributeDef=this.productService.getServiceAccessAttributeDef(aDef,LocationClassifier.aEnde);
-      //console.log(this.saAEndeAttributeDef);
+      //console.log("SA Attribute",this.saAEndeAttributeDef);
 
       this.locationAEndeAttributeDef=this.productService.getLocationAttributeDef(aDef,LocationClassifier.aEnde);
-      //console.log(this.locationAEndeAttributeDef);
+      //console.log("Location Attribute",this.locationAEndeAttributeDef);
       this.loadingDone=true;
 
     });
@@ -184,6 +184,11 @@ export class ProductCardComponent implements OnInit {
     if (this.getMatchingServiceAccessObjects().length != 1){
       //ToDo : Auswahl aus mehreren. <1 sollte hier nicht vorkommen
       this.alertService.danger("Es wurde nicht EXAKT EIN Erschließungsystem gefunden !");
+      return;
+    }
+    if ((this.saAEndeAttributeDef==null)||(this.locationAEndeAttributeDef==null)){
+      //ohne attribute zum speichern der service-access-info wird es duenn
+      this.alertService.danger("Fehler in Produktdefinition !");
       return;
     }
     let selectedServiceAccessObject=this.getMatchingServiceAccessObjects()[0];
