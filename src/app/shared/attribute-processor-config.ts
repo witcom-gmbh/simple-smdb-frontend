@@ -32,6 +32,15 @@ export const attributeProcessors:Array<AttributeProcessor> = [
         "valueHandler":ValueHandler.DEFAULT_STRING_HANDLER
     },
     {
+        "id": "/attributeProcessor/simpleInput/booleanNumber",
+        "renderer": "TOGGLEYN",
+        "storeFormat": "PLAIN",
+        "validAttributeTypes": [
+            "AttributeDecimalDto"
+        ],
+        "valueHandler":ValueHandler.BOOLEAN_NUMBER_HANDLER
+    },
+    {
         "id": "/attributeProcessor/readOnly",
         "renderer": "DEFAULT",
         "storeFormat": "PLAIN",
@@ -40,6 +49,7 @@ export const attributeProcessors:Array<AttributeProcessor> = [
         ],
         "valueHandler":ValueHandler.DEFAULT_STRING_HANDLER
     },
+
     {
         "id": "/attributeProcessor/lookup/bsaProduct",
         "renderer": "BSAPRODUCT",
