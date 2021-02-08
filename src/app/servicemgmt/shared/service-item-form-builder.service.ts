@@ -27,7 +27,7 @@ import {
 import { ServiceItemService } from '../../services/service-item.service';
 import {MockApiSearchService} from '../../services/mock-api-search.service'
 import  * as constants from '../../shared/constants.module';
-import {AbstractBaseComponent,TextComponent,TextAreaComponent,MockAutoCompleteComponent,SelectComponent,NumberComponent} from './form-component-builder/form-components';
+import {AbstractBaseComponent,TextComponent,TextAreaComponent,MockAutoCompleteComponent,SelectComponent,NumberComponent,SwitchComponent} from './form-component-builder/form-components';
 import { SmdbConfig } from './smdb-config';
 import {ValueHandler} from './value-handler.enum';
 import {AttributeProcessorService} from '../../services/services';
@@ -271,6 +271,14 @@ export class ServiceItemFormBuilder {
             case ValueHandler.DEFAULT_NUMBER_HANDLER:
                 attribute.value = value;
                 return <AttributeSaveData>{attribute:attribute,extendedConfig:null};
+            case ValueHandler.BOOLEAN_NUMBER_HANDLER:
+              console.log(attribute);
+              if (value == true){
+                attribute.value = 1;
+              } else {
+                attribute.value = 0;
+              }
+              return <AttributeSaveData>{attribute:attribute,extendedConfig:null};
             case ValueHandler.DEFAULT_ENUM_HANDLER:
                 updateEnum = this.getEnumAttributeValueByValue(attribute,value);
                 if (!t(updateEnum).isNullOrUndefined){
@@ -402,12 +410,19 @@ Hande Readonly different - attribute is marked as readonly, renderer has to sho 
     let processor:AttributeProcessor= this.getAttributeProcessor(attribute);
 
     switch (processor.renderer){
+      case "TOGGLEYN":
+        return this.getBooleanDecimalAttributeComponent(attribute,processor);
       default:
         return this.getDefaultDecimalAttributeComponent(attribute,processor);
 
     }
   }
 
+  private getBooleanDecimalAttributeComponent(attribute,processor:AttributeProcessor):DynamicInputControlModel<any>{
+    let rules = this.getAttributeValidationRules(attribute);
+    return new SwitchComponent(attribute,processor,this.serviceItem).AttributeRules(rules).getDynamicModel(); ;
+
+  }
   private getDefaultDecimalAttributeComponent(attribute,processor:AttributeProcessor):DynamicInputControlModel<any>{
     let rules = this.getAttributeValidationRules(attribute);
     return new NumberComponent(attribute,processor,this.serviceItem).AttributeRules(rules).getDynamicModel(); ;

@@ -11,3 +11,4 @@ export { TextComponent } from './text-component';
 export {MockAutoCompleteComponent} from './mock-autocomplete';
 export {SelectComponent} from './select-component';
 export {NumberComponent}from './number-component';
+export {SwitchComponent} from './toggle-component';
