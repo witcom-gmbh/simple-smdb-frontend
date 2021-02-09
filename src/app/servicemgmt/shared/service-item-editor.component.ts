@@ -73,7 +73,7 @@ export class ServiceItemEditorComponent implements OnInit {
             )
             .subscribe(([itemAttributes,contactRelations,childrenMultiplicity,productItemAttributes]) => {
                 this.itemAttributes = itemAttributes;
-                //console.log(productItemAttributes);
+                //console.log(itemAttributes);
                 this.serviceItemFormBuilder.setProductitemAttributes(productItemAttributes);
                 this.serviceItemFormBuilder.setServiceItem(this.serviceItem);
                 this.serviceItemFormBuilder.setServiceItemAttributes(this.itemAttributes);
@@ -218,7 +218,7 @@ export class ServiceItemEditorComponent implements OnInit {
         this.servicItemService.modifyServiceItemMultiplicity(this.serviceItem.id,childAssocName,multiplicity)
         .subscribe(res => {
             this.servicItemService.reloadBS(this.serviceItem.owningBusinessServiceId);
-            this.servicItemService.notifySvcItemUpdate(this.serviceItem.id);
+            this.servicItemService.notifySvcItemUpdate(this.serviceItem);
         },err => {
             console.warn("Error while updating Service-Multiplicity: ",err);
             //revert switch

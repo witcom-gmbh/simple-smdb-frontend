@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
-import { Observable,throwError  } from 'rxjs';
+import { Observable,throwError, forkJoin, of  } from 'rxjs';
 import { catchError, map, tap,flatMap } from 'rxjs/operators';
 import {BehaviorSubject} from 'rxjs';
 import t from 'typy';
 import {ServiceTerm} from './ServiceTerm';
-import { ServiceRetrievalV2Service,ServiceInstantiationV3Service,ServiceMgmtV1Service,ServiceMgmtV2Service } from '../api/services';
+import {ProductService} from './product.service';
+import { ServiceRetrievalV2Service,ServiceInstantiationV3Service,ServiceMgmtV1Service,ServiceMgmtV2Service,PrimaryAttributeV1Service } from '../api/services';
 import {
     ContactRelationDto,
     ServiceItemDto,
@@ -17,8 +18,16 @@ import {
     CustomPropertiesDto,
     ServiceItemMultiplicityDto,
     MoneyItemDto,
-    ServiceMgmtUpdateParametersDto
+    ServiceMgmtUpdateParametersDto,
+    AttributeDefAssociationDto,
+    AttributeDefDto,
+    AttributeStringDto,
+    AbsoluteDiscountDto,
+    MoneyDto
 } from '../api/models';
+import { SimpleProductAttrDefinition, ChangePrice, AttributePrice, UsagePrice } from '../models';
+import { SplTranslatePipe } from '../shared/shared';
+import { AttributeDecimalDto } from '../api/models/attribute-decimal-dto';
 
 
 @Injectable({
@@ -29,7 +38,7 @@ export class ServiceItemService {
     private _UpdatedBSSource = new BehaviorSubject<number>(0);
     updatedBS$ = this._UpdatedBSSource.asObservable();
 
-    private _UpdatedSvcItemSource = new BehaviorSubject<number>(0);
+    private _UpdatedSvcItemSource = new BehaviorSubject<ServiceItemDto>(null);
     updatedSvcItem$ = this._UpdatedSvcItemSource.asObservable();
 
 
@@ -37,7 +46,9 @@ export class ServiceItemService {
     private svcRetrieval:ServiceRetrievalV2Service,
     //private svcMgmt:ServiceMgmtV1Service,
     private svcMgmt:ServiceMgmtV2Service,
-    private svcInstantiation:ServiceInstantiationV3Service
+    private svcInstantiation:ServiceInstantiationV3Service,
+    private primaryAttrSvc:PrimaryAttributeV1Service,
+    private productSvc:ProductService
   ) { }
 
 
@@ -87,7 +98,10 @@ export class ServiceItemService {
   }
 
   getItemById(serviceItemId: number): Observable<ServiceItemDto> {
-      return this.svcRetrieval.ServiceRetrievalGetServiceItemByIdV2(serviceItemId);
+      return this.svcRetrieval.ServiceRetrievalGetServiceItemByIdV2(serviceItemId).pipe(tap(data => {
+                    //Signal refresh
+                    this.notifySvcItemUpdate(data);
+                }));
   }
 
   /**
@@ -128,6 +142,168 @@ export class ServiceItemService {
       };
       return this.svcRetrieval.ServiceRetrievalGetServiceItemPricesV2(params);
   }
+
+
+  getUsageBasedPricesForService(service:ServiceItemDto):Observable<Array<UsagePrice>>{
+
+
+    let usageBasedConfigProperty="usagebasedPricingConfiguration";
+    let usageBasedPriceDefinedByProperty="usageBasedPriceDefinedBy";
+    let priceDefValue="pricedefinition";
+    let usageValue="usage";
+
+    let prodId= service.productItem.id;
+
+    let attrPricing = this.primaryAttrSvc.PrimaryAttributeGetPrimaryAttributePricingInformationV1(prodId);
+    let attrDef = this.productSvc.getAttributeDefByProductItem(prodId);
+    let serviceAttributes = this.getItemAttributes(service.id);
+
+    return forkJoin(attrPricing,attrDef,serviceAttributes).pipe(
+      map(([pricing,adefs,serviceAttributes]) => {
+
+        //serviceAttributes[0].
+
+        let priceDefAttrs:Array<AttributeDefDto>=[];
+        for (var aDef of adefs ){
+          //Alle Attribute die mengenabhaengige Preise definieren
+          if (aDef.attributeDef.customProperties.properties.find(it => it.name==usageBasedConfigProperty && it.value==priceDefValue)){
+            priceDefAttrs.push(aDef.attributeDef);
+          }
+        }
+
+        let usagePriceDef:Array<AttributePrice>=[];
+        if(!t(pricing.childAttributeEnumValues).isEmptyArray){
+          //alle child-attributes durchlaufen
+          for (var el of pricing.childAttributeEnumValues){
+                if (priceDefAttrs.find (it => it.id == el.childAttributeDefId)){
+                //nur mit preisen
+                if(el.prices.length>0){
+                    let attr = priceDefAttrs.find(it => it.id == el.childAttributeDefId);
+                    if (attr){
+                      let attrObj:SimpleProductAttrDefinition = {'name':attr.name,'displayName':attr.displayName,'attributeDefId': el.childAttributeDefId};
+                      //nur ein preis pro attribut erlaubt -> ersten nehmen
+                      let obj:AttributePrice = {attribute:attrObj,price:el.prices[0]}
+                      usagePriceDef.push(obj)
+                    }
+                }
+            }
+          }
+        }
+
+
+        //Alle Attribute die Nutzungsmengen definieren
+        let usageBasedUsageAttributes:Array<AttributeDecimalDto>=[];
+        for (var attr of serviceAttributes ){
+          switch (attr._type){
+            case "AttributeDecimalDto":
+              let tempDecAttr:AttributeDecimalDto = attr;
+              if (tempDecAttr.attributeDef.attributeDef.customProperties.properties.find(it => it.name==usageBasedConfigProperty && it.value==usageValue)){
+                usageBasedUsageAttributes.push(tempDecAttr);
+              }
+
+            break;
+          }
+
+        }
+
+        let usagePriceInfo:Array<UsagePrice>=[];
+
+        if(!t(usageBasedUsageAttributes).isEmptyArray){
+          for ( var usageAttr of usageBasedUsageAttributes) {
+            //console.log("Nutzung in",usageAttr);
+            //Die Preisdefinition wird in der customProperty usageBasedPriceDefinedBy des Mengen-Attributs referenziert
+            let attrPriceReference=usageAttr.attributeDef.attributeDef.customProperties.properties.find(it => it.name==usageBasedPriceDefinedByProperty);
+            //Versuchen das Attribut zu finden, welches referenziert wird
+            let priceDefAttr = usagePriceDef.find(it => it.attribute.name == attrPriceReference.value );
+            if (priceDefAttr){
+              //console.log("Preisdefinition in",priceDefAttr);
+
+              //preis pro einheit aus dem referenzierten Merkmal ermitteln
+              //let absDiscount:any = priceDefAttr.price.discount;
+              if (priceDefAttr.price.discount._type=="AbsoluteDiscountDto"){
+                let absDiscount = priceDefAttr.price.discount as AbsoluteDiscountDto;
+                let pricePerUnit=absDiscount.money;
+                //Summe berechnen
+                let usageSum:MoneyDto={} as MoneyDto;
+                usageSum._type="MoneyDto";
+                usageSum.amount=pricePerUnit.amount * usageAttr.value;
+                usageSum.currency=pricePerUnit.currency;
+
+                //referenzierter Accounting-Type
+                let accountingType=priceDefAttr.price.accountingType;
+
+                let obj={'attribute':usageAttr.attributeDef.attributeDef,
+                'accountingType':accountingType,
+                'usage':usageAttr.value,
+                'pricePerUnit':pricePerUnit,
+                'calculatedPrice':usageSum
+                };
+                usagePriceInfo.push(obj);
+              }
+            }
+
+          }
+
+
+        }
+        return usagePriceInfo;
+      }
+
+      )
+
+    );
+  }
+
+
+
+  getChangePricesForService(service:ServiceItemDto):Observable<Array<ChangePrice>>{
+
+    let prodId= service.productItem.id;
+
+    let changeProperty="oneTimeChange";
+
+    let attrPricing = this.primaryAttrSvc.PrimaryAttributeGetPrimaryAttributePricingInformationV1(prodId);
+    let attrDef = this.productSvc.getAttributeDefByProductItem(prodId);
+
+    return forkJoin(attrPricing,attrDef).pipe(
+      map(([pricing,adefs]) => {
+
+        let changeDefAttrs:Array<AttributeDefDto>=[];
+        for (var aDef of adefs ){
+          //Alle Attribute bei denen oneTimeChange = true ist
+          if (aDef.attributeDef.customProperties.properties.find(it => it.name==changeProperty && it.value=="true" )){
+            changeDefAttrs.push(aDef.attributeDef);
+          }
+        }
+
+        let changePriceDef:Array<ChangePrice>=[];
+        //pricing.
+        if(!t(pricing.childAttributeEnumValues).isEmptyArray){
+
+          //alle child-attributes durchlaufen
+          for (var el of pricing.childAttributeEnumValues){
+            //nur solche die oben als relevant fuer preisdefinitionen ermittelt wurden
+            if (changeDefAttrs.find (it => it.id == el.childAttributeDefId)){
+                //nur mit preisen
+                if(el.prices.length>0){
+                    let attr = changeDefAttrs.find(it => it.id == el.childAttributeDefId);
+                    if (attr){
+                      let attrObj:SimpleProductAttrDefinition = {'name':attr.name,'displayName':attr.displayName,'attributeDefId': el.childAttributeDefId};
+                      //nur ein preis pro attribut erlaubt -> ersten nehmen
+                      let obj:ChangePrice = {attribute:attrObj,price:el.prices[0]}
+                      changePriceDef.push(obj)
+                    }
+                }
+            }
+          }
+        }
+        return changePriceDef;
+
+
+      })
+    );
+
+}
 
 
   /**
@@ -342,7 +518,9 @@ export class ServiceItemService {
 
       var data = <ServiceInstantiation_ModifyServiceItemAttributesRestHolder>{};
       var selector = <ServiceDataSelectorDto>{};
-      //selector.addCustomProperties=true;
+      selector.addCustomProperties=true;
+      selector.addProductInfo=true;
+      selector.addPriceInfo=true;
       selector._type="ServiceDataSelectorDto";
       data.retainAttributeValues=true;
       data.recalculatePrices=true;
@@ -355,6 +533,7 @@ export class ServiceItemService {
       let svcItemParams = <ServiceMgmtUpdateParametersDto>{};
       svcItemParams._type = "ServiceMgmtUpdateParametersDto";
       svcItemParams.serviceItemDto = serviceItem;
+      //svcItemParams.
 
       return this.svcMgmt
       //Update Service-Item
@@ -364,7 +543,9 @@ export class ServiceItemService {
           return this.svcInstantiation.ServiceInstantiationModifyServiceItemAttributesV3(params)
                 .pipe(tap(data => {
                     //Signal Modification
+
                     this.reloadBS(data.owningBusinessServiceId);
+                    this.notifySvcItemUpdate(data);
                 }));
             }
           ));
@@ -380,7 +561,7 @@ export class ServiceItemService {
       this._UpdatedBSSource.next(svcId);
   }
 
-  notifySvcItemUpdate(svcId:number):void{
+  notifySvcItemUpdate(svcId:ServiceItemDto):void{
       this._UpdatedSvcItemSource.next(svcId);
   }
 

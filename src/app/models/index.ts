@@ -6,4 +6,7 @@ export * from './service-location-source.enum';
 export * from './location-classifier.enum';
 export * from './bsaabfrage-produkt';
 export * from './bsaabfrage-result';
-
+export * from './simple-product-attr-definition';
+export * from './change-price';
+export * from './attribute-price';
+export * from './usage-price';

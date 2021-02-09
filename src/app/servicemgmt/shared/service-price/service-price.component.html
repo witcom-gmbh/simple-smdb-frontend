@@ -1,8 +1,27 @@
-<div *ngIf="prices"> 
+<div *ngIf="prices">
 <p>
   PREISINFO
 </p>
-<div *ngFor="let price of orderBy('accountingTypeName')"> 
+<div *ngFor="let price of orderBy('accountingTypeName')">
 <span><strong>{{price.accountingType.displayName |splTranslate}}</strong>&nbsp;{{price.money.amount}} {{price.money.currency}}</span>
 </div>
+<br/>
+</div>
+<div *ngIf="changePrices">
+<p>
+  PREISE FÜR CHANGES
+</p>
+<div *ngFor="let changePrice of changePrices">
+<span><strong>{{changePrice.attribute.displayName |splTranslate}}</strong>&nbsp;{{changePrice.price.discount.money.amount}} {{changePrice.price.discount.money.currency}}</span>
+</div>
+<br/>
+</div>
+<div *ngIf="usagePrices">
+<p>
+  NUTZUNGSABHÄNGIGE PREISE
+</p>
+<div *ngFor="let usagePrice of usagePrices">
+<span><strong>{{usagePrice.attribute.displayName |splTranslate}}</strong>&nbsp;{{usagePrice.pricePerUnit.amount}} {{usagePrice.pricePerUnit.currency}}&nbsp;=&nbsp;{{usagePrice.calculatedPrice.amount}}</span>
+</div>
+<br/>
 </div>

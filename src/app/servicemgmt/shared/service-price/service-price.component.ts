@@ -6,6 +6,7 @@ import { NGXLogger } from 'ngx-logger';
 import { AlertService } from 'ngx-alerts';
 import {Subscription} from 'rxjs';
 import { SmdbConfig } from '../smdb-config';
+import { ChangePrice, UsagePrice } from '../../../models';
 
 @Component({
   selector: 'service-price',
@@ -15,9 +16,12 @@ import { SmdbConfig } from '../smdb-config';
 export class ServicePriceComponent implements OnInit {
 
     prices:Array<MoneyItemDto>=null;
+    changePrices:Array<ChangePrice>=[];
+    usagePrices:Array<UsagePrice>=[];
     @Input() serviceItemId:number;
     serviceItem:ServiceItemDto=null;
     private subscription:Subscription;
+    private serviceSubscription:Subscription;
     private updating:boolean=false;
 
   constructor(
@@ -29,11 +33,21 @@ export class ServicePriceComponent implements OnInit {
   ngOnInit() {
 
       this.subscription = this.servicItemService.updatedBS$.subscribe(item => {
-           this.logger.debug("Service has been updated ",item);
-           this.getServiceItem();
+           this.logger.debug("Business-Service has been updated ",item);
+           //this.getServiceItem();
       });
+
+      this.serviceSubscription = this.servicItemService.updatedSvcItem$.subscribe(item => {
+          this.logger.debug("Service has been refreshed",item);
+          if(item!=null){
+             this.serviceItem=item;
+             this.getPrice();
+          }
+      });
+
+
       if(t(this.serviceItemId).isNumber){
-        this.getServiceItem();
+        //this.getServiceItem();
       }
 
 
@@ -46,13 +60,39 @@ export class ServicePriceComponent implements OnInit {
    *
    */
   private getPrice(){
+    console.log(this.serviceItem);
+    if (this.serviceItem == null){
+      return;
+    }
+      this.updating=true;
       let availableAccountingTypes:Array<String> = this.servicItemService.getAvailableAccountingTypes(this.serviceItem);
       //get prices
       this.servicItemService.getItemPrices(this.serviceItemId).subscribe(
       prices => {
           this.prices = prices.filter(p => availableAccountingTypes.find(a=> a===p.accountingType.name));
           this.updating=false;
+
+      },err => {
+            this.alertService.danger("Preise konnten nicht geladen werden");
       });
+
+      this.servicItemService.getChangePricesForService(this.serviceItem).subscribe(changePrices => {
+        console.log(changePrices);
+        this.changePrices = changePrices;
+      },err => {
+          //console.log(err);
+          this.alertService.danger("Change-Preise konnten nicht geladen werden");
+      });
+
+      this.servicItemService.getUsageBasedPricesForService(this.serviceItem).subscribe(usagePrices => {
+        console.log(usagePrices);
+        this.usagePrices = usagePrices;
+      },err => {
+          console.log(err);
+          this.alertService.danger("Nutzungs-Preise konnten nicht geladen werden");
+      });
+
+
 
   }
 
