@@ -729,29 +729,6 @@ Hande Readonly different - attribute is marked as readonly, renderer has to sho 
   }
 
 
-  /**
-   * Checks if attribute value has to be stored as json-encoded string
-   *
-   * @param attribute
-   */
-  private isAttributeStoredAsJSON(attribute:any):boolean{
-
-    let processor:AttributeProcessor = this.getAttributeProcessor(attribute);
-    if (processor.storeFormat=="JSON"){
-      return true;
-    }
-    return false;
-
-    /*
-
-      let filterProperty:CustomPropertyDto = this.getCustomPropertyByName(attribute.attributeDef.attributeDef,'attributeStoredAsJson');
-      if (t(filterProperty,'value').isTrue){
-          return true;
-      }
-      return false;
-      */
-  }
-
   private isAttributeUpdateable(attribute:any):boolean{
 
     //FUNCTIONAL attributes only

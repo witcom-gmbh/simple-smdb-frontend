@@ -11,7 +11,6 @@ import {ValueHandler} from '../servicemgmt/shared/value-handler.enum';
 export interface AttributeProcessor {
     id:String,
     renderer: String,
-    storeFormat: 'PLAIN' | 'JSON' | 'EXTENDED';
     validAttributeTypes:Array<String>;
     valueHandler:ValueHandler;
 }
@@ -24,7 +23,6 @@ export const attributeProcessors:Array<AttributeProcessor> = [
   {
         "id": "/attributeProcessor/simpleInput/textarea",
         "renderer": "TEXTAREA",
-        "storeFormat": "PLAIN",
 
         "validAttributeTypes": [
             "AttributeStringDto"
@@ -34,7 +32,7 @@ export const attributeProcessors:Array<AttributeProcessor> = [
     {
         "id": "/attributeProcessor/simpleInput/booleanNumber",
         "renderer": "TOGGLEYN",
-        "storeFormat": "PLAIN",
+
         "validAttributeTypes": [
             "AttributeDecimalDto"
         ],
@@ -43,7 +41,6 @@ export const attributeProcessors:Array<AttributeProcessor> = [
     {
         "id": "/attributeProcessor/readOnly",
         "renderer": "DEFAULT",
-        "storeFormat": "PLAIN",
         "validAttributeTypes": [
             "AttributeStringDto","AttributeEnumDto"
         ],
@@ -53,7 +50,6 @@ export const attributeProcessors:Array<AttributeProcessor> = [
     {
         "id": "/attributeProcessor/lookup/bsaProduct",
         "renderer": "BSAPRODUCT",
-        "storeFormat": "EXTENDED",
         "validAttributeTypes": [
             "AttributeEnumDto"
         ],
@@ -62,7 +58,6 @@ export const attributeProcessors:Array<AttributeProcessor> = [
     {
         "id": "/attributeProcessor/lookup/contact",
         "renderer": "CONTACT",
-        "storeFormat": "JSON",
         "validAttributeTypes": [
             "AttributeStringDto"
         ],
@@ -71,7 +66,6 @@ export const attributeProcessors:Array<AttributeProcessor> = [
     {
         "id": "/attributeProcessor/lookup/location",
         "renderer": "LOCATION",
-        "storeFormat": "JSON",
         "validAttributeTypes": [
             "AttributeStringDto"
         ],
@@ -80,7 +74,6 @@ export const attributeProcessors:Array<AttributeProcessor> = [
     {
         "id": "/attributeProcessor/lookup/company",
         "renderer": "DEFAULT",
-        "storeFormat": "PLAIN",
         "validAttributeTypes": [
             "AttributeStringDto"
         ],
@@ -89,7 +82,6 @@ export const attributeProcessors:Array<AttributeProcessor> = [
     {
         "id": "/attributeProcessor/readOnly/locationReadOnly",
         "renderer": "DEFAULT",
-        "storeFormat": "PLAIN",
         "validAttributeTypes": [
             "AttributeStringDto"
         ],
@@ -98,7 +90,6 @@ export const attributeProcessors:Array<AttributeProcessor> = [
     {
         "id": "/attributeProcessor/serviceAccess",
         "renderer": "DEFAULT",
-        "storeFormat": "JSON",
         "validAttributeTypes": [
             "AttributeStringDto"
         ],
@@ -107,7 +98,6 @@ export const attributeProcessors:Array<AttributeProcessor> = [
     {
         "id": "/attributeProcessor/serviceAccess/fibreAccess",
         "renderer": "DEFAULT",
-        "storeFormat": "PLAIN",
         "validAttributeTypes": [
             "AttributeStringDto"
         ],
@@ -116,7 +106,6 @@ export const attributeProcessors:Array<AttributeProcessor> = [
     {
         "id": "/attributeProcessor/serviceAccess/wholebuy",
         "renderer": "DEFAULT",
-        "storeFormat": "PLAIN",
         "validAttributeTypes": [
             "AttributeStringDto"
         ],
@@ -125,7 +114,6 @@ export const attributeProcessors:Array<AttributeProcessor> = [
     {
         "id": "/attributeProcessor/serviceAccess/IPBSA",
         "renderer": "BSAPRODUCT",
-        "storeFormat": "EXTENDED",
         "validAttributeTypes": [
             "AttributeEnumDto"
         ],
@@ -134,7 +122,6 @@ export const attributeProcessors:Array<AttributeProcessor> = [
     {
         "id": "DEFAULTSTRING",
         "renderer": "DEFAULT",
-        "storeFormat": "PLAIN",
         "validAttributeTypes": [
             "AttributeStringDto"
         ],
@@ -143,7 +130,6 @@ export const attributeProcessors:Array<AttributeProcessor> = [
     {
         "id": "DEFAULTENUM",
         "renderer": "DEFAULT",
-        "storeFormat": "PLAIN",
         "validAttributeTypes": [
             "AttributeEnumDto"
         ],
@@ -152,7 +138,6 @@ export const attributeProcessors:Array<AttributeProcessor> = [
     {
         "id": "DEFAULTDECIMAL",
         "renderer": "DEFAULT",
-        "storeFormat": "PLAIN",
         "validAttributeTypes": [
             "AttributeDecimalDto"
         ],
