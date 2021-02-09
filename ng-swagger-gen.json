@@ -16,7 +16,7 @@
   "ProductCatalog_V1",
   "PrimaryAttribute_V1"
   ],
-  "ignoreUnusedModels": true,
+  "ignoreUnusedModels": false,
   "minParamsForContainer": 2,
   "sortParams": "desc",
   "defaultTag": "Api",
