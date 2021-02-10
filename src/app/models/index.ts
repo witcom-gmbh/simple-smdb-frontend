@@ -10,3 +10,4 @@ export * from './simple-product-attr-definition';
 export * from './change-price';
 export * from './attribute-price';
 export * from './usage-price';
+export * from './freestyle-price';
