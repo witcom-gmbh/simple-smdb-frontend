@@ -23,9 +23,10 @@ import {
     AttributeDefDto,
     AttributeStringDto,
     AbsoluteDiscountDto,
-    MoneyDto
+    MoneyDto,
+    AccountingTypeDto
 } from '../api/models';
-import { SimpleProductAttrDefinition, ChangePrice, AttributePrice, UsagePrice } from '../models';
+import { SimpleProductAttrDefinition, ChangePrice, AttributePrice, UsagePrice, FreestylePrice } from '../models';
 import { SplTranslatePipe } from '../shared/shared';
 import { AttributeDecimalDto } from '../api/models/attribute-decimal-dto';
 
@@ -141,6 +142,76 @@ export class ServiceItemService {
           serviceItemId:serviceItemId
       };
       return this.svcRetrieval.ServiceRetrievalGetServiceItemPricesV2(params);
+  }
+
+
+  getFreestylePricesForService(service:ServiceItemDto):Observable<Array<FreestylePrice>>{
+
+    let prodId= service.productItem.id;
+    let isFreestyleProperty="definesFreestylePrice";
+    let freestylePriceAccountingTypeProperty="freestylePriceAccountingType";
+    /**
+     * Bedingungen
+     * isFreestyleProperty == true
+     * freestylePriceAccountingTypeProperty ist gesetzt
+     *
+     * Attribut muss ein numerisches Attribut sein
+     */
+
+    let attrDef = this.productSvc.getAttributeDefByProductItem(prodId);
+    let serviceAttributes = this.getItemAttributes(service.id);
+
+    return forkJoin(attrDef,serviceAttributes).pipe(
+      map(([attrDef,serviceAttributes]) => {
+
+
+        let freestylePrices:Array<FreestylePrice>=[];
+        //let freestyleDefAttrs:Array<AttributeDefDto>=[];
+        for (var aDef of attrDef ){
+          //Alle Attribute die freestyle Preise definieren ermitteln
+          let isFreestyleAttr:boolean=false;
+          let hasFreestylePriceAccountingTypeDefined:boolean=false;
+          if(aDef.attributeType._type=="AttributeDecimalTypeDto"){
+            if (!t(aDef.attributeDef.customProperties.properties.find(it => it.name==isFreestyleProperty && it.value=="true")).isNullOrUndefined){
+              isFreestyleAttr=true;
+            }
+
+            if (!t(aDef.attributeDef.customProperties.properties.find(it => it.name==freestylePriceAccountingTypeProperty && it.value!=null)).isNullOrUndefined){
+              hasFreestylePriceAccountingTypeDefined=true;
+            }
+            if (isFreestyleAttr && hasFreestylePriceAccountingTypeDefined){
+              //freestyleDefAttrs.push(aDef.attributeDef);
+              //lookup the attribute in the service-item
+              let svcAttr = serviceAttributes.find(it => it.attributeDef.attributeDef.id == aDef.attributeDef.id) as AttributeDecimalDto;
+              let accountingTypeProperty=aDef.attributeDef.customProperties.properties.find(it => it.name==freestylePriceAccountingTypeProperty && it.value!=null);
+
+              if ((t(svcAttr,'value').isNumber)&&(t(accountingTypeProperty,'value').isString)){
+                //create very simple AccountingTypeDto
+                let accountingType:AccountingTypeDto={} as AccountingTypeDto;
+                accountingType.name=accountingTypeProperty.value;
+                let fsPriceMoney:MoneyDto={} as MoneyDto;
+                fsPriceMoney._type="MoneyDto";
+                fsPriceMoney.amount=svcAttr.value
+                fsPriceMoney.currency="EUR";
+
+                let attrObj:SimpleProductAttrDefinition = {'name':aDef.attributeDef.name,'displayName':aDef.attributeDef.displayName,'attributeDefId': aDef.attributeDef.id};
+
+                let price:FreestylePrice={} as FreestylePrice;
+                price.attribute = attrObj;
+                price.accountingType=accountingType;
+                price.price=fsPriceMoney;
+                freestylePrices.push(price);
+
+              }
+            }
+          }
+        }
+
+        return freestylePrices;
+
+      })
+    );
+
   }
 
 

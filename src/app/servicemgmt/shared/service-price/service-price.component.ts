@@ -4,9 +4,10 @@ import {ServiceItemService,ServiceTerm} from '../../../services/services';
 import t from 'typy';
 import { NGXLogger } from 'ngx-logger';
 import { AlertService } from 'ngx-alerts';
-import {Subscription} from 'rxjs';
+import {Subscription, forkJoin} from 'rxjs';
 import { SmdbConfig } from '../smdb-config';
 import { ChangePrice, UsagePrice } from '../../../models';
+import { map } from 'rxjs/operators';
 
 @Component({
   selector: 'service-price',
@@ -61,38 +62,36 @@ export class ServicePriceComponent implements OnInit {
    */
   private getPrice(){
     console.log(this.serviceItem);
-    if (this.serviceItem == null){
-      return;
-    }
       this.updating=true;
       let availableAccountingTypes:Array<String> = this.servicItemService.getAvailableAccountingTypes(this.serviceItem);
-      //get prices
-      this.servicItemService.getItemPrices(this.serviceItemId).subscribe(
-      prices => {
-          this.prices = prices.filter(p => availableAccountingTypes.find(a=> a===p.accountingType.name));
+
+      let defaultPrices = this.servicItemService.getItemPrices(this.serviceItemId);
+      let changePrices = this.servicItemService.getChangePricesForService(this.serviceItem);
+      let usagePrices = this.servicItemService.getUsageBasedPricesForService(this.serviceItem);
+      let freestylePrices = this.servicItemService.getFreestylePricesForService(this.serviceItem);
+
+      forkJoin(defaultPrices,changePrices,usagePrices,freestylePrices).subscribe(([defaultPrices,changePrices,usagePrices,freestylePrices]) => {
+          let filteredPrices = defaultPrices.filter(p => availableAccountingTypes.find(a=> a===p.accountingType.name));
+          //add freestyle prices to default price
+          for (var price of filteredPrices ){
+            //lookup the accounting type in the list of freestyleprices
+            let freestylePricesForAccountingType=freestylePrices.filter(fsprice => fsprice.accountingType.name == price.accountingType.name);
+            for (var fsPrice of freestylePricesForAccountingType ){
+              if (t(fsPrice,'price.amount').isNumber){
+                price.money.amount = price.money.amount + fsPrice.price.amount;
+              }
+            }
+          }
+          this.prices=filteredPrices;
+
+          this.changePrices = changePrices;
+          this.usagePrices = usagePrices;
           this.updating=false;
-
-      },err => {
-            this.alertService.danger("Preise konnten nicht geladen werden");
-      });
-
-      this.servicItemService.getChangePricesForService(this.serviceItem).subscribe(changePrices => {
-        console.log(changePrices);
-        this.changePrices = changePrices;
-      },err => {
-          //console.log(err);
-          this.alertService.danger("Change-Preise konnten nicht geladen werden");
-      });
-
-      this.servicItemService.getUsageBasedPricesForService(this.serviceItem).subscribe(usagePrices => {
-        console.log(usagePrices);
-        this.usagePrices = usagePrices;
-      },err => {
+        },err => {
           console.log(err);
-          this.alertService.danger("Nutzungs-Preise konnten nicht geladen werden");
-      });
-
-
+          this.alertService.danger("Preise konnten nicht geladen werden");
+        }
+      );
 
   }
 

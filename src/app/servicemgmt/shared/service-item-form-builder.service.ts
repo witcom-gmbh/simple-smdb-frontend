@@ -272,7 +272,6 @@ export class ServiceItemFormBuilder {
                 attribute.value = value;
                 return <AttributeSaveData>{attribute:attribute,extendedConfig:null};
             case ValueHandler.BOOLEAN_NUMBER_HANDLER:
-              console.log(attribute);
               if (value == true){
                 attribute.value = 1;
               } else {

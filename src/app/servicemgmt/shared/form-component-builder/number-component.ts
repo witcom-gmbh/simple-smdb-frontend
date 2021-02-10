@@ -48,7 +48,7 @@ export class NumberComponent extends AbstractBaseComponent{
           model.validators["max"]=model.max;
           model.errorMessages["max"]= "Wert darf nicht größer als {{ max }} sein" ;
         }
-        console.log(model);
+        //console.log(model);
 
 
         //custom validators
