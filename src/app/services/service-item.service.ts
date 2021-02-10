@@ -29,6 +29,7 @@ import {
 import { SimpleProductAttrDefinition, ChangePrice, AttributePrice, UsagePrice, FreestylePrice } from '../models';
 import { SplTranslatePipe } from '../shared/shared';
 import { AttributeDecimalDto } from '../api/models/attribute-decimal-dto';
+import { SmdbAccountingTypeService } from './smdb-accounting-type.service';
 
 
 @Injectable({
@@ -49,7 +50,8 @@ export class ServiceItemService {
     private svcMgmt:ServiceMgmtV2Service,
     private svcInstantiation:ServiceInstantiationV3Service,
     private primaryAttrSvc:PrimaryAttributeV1Service,
-    private productSvc:ProductService
+    private productSvc:ProductService,
+    private accountingTypeSvc:SmdbAccountingTypeService
   ) { }
 
 
@@ -145,6 +147,8 @@ export class ServiceItemService {
   }
 
 
+
+
   getFreestylePricesForService(service:ServiceItemDto):Observable<Array<FreestylePrice>>{
 
     let prodId= service.productItem.id;
@@ -187,21 +191,23 @@ export class ServiceItemService {
 
               if ((t(svcAttr,'value').isNumber)&&(t(accountingTypeProperty,'value').isString)){
                 //create very simple AccountingTypeDto
-                let accountingType:AccountingTypeDto={} as AccountingTypeDto;
-                accountingType.name=accountingTypeProperty.value;
-                let fsPriceMoney:MoneyDto={} as MoneyDto;
-                fsPriceMoney._type="MoneyDto";
-                fsPriceMoney.amount=svcAttr.value
-                fsPriceMoney.currency="EUR";
+                let accountingType:AccountingTypeDto=this.accountingTypeSvc.getAccountingTypeByName(accountingTypeProperty.value)
+                if(!t(accountingType).isNullOrUndefined){
+                  let fsPriceMoney:MoneyDto={} as MoneyDto;
+                  fsPriceMoney._type="MoneyDto";
+                  fsPriceMoney.amount=svcAttr.value
+                  fsPriceMoney.currency="EUR";
 
-                let attrObj:SimpleProductAttrDefinition = {'name':aDef.attributeDef.name,'displayName':aDef.attributeDef.displayName,'attributeDefId': aDef.attributeDef.id};
+                  let attrObj:SimpleProductAttrDefinition = {'name':aDef.attributeDef.name,'displayName':aDef.attributeDef.displayName,'attributeDefId': aDef.attributeDef.id};
 
-                let price:FreestylePrice={} as FreestylePrice;
-                price.attribute = attrObj;
-                price.accountingType=accountingType;
-                price.price=fsPriceMoney;
-                freestylePrices.push(price);
-
+                  let price:FreestylePrice={} as FreestylePrice;
+                  price.attribute = attrObj;
+                  price.accountingType=accountingType;
+                  price.price=fsPriceMoney;
+                  freestylePrices.push(price);
+                } else {
+                  //good place to log an error...
+                }
               }
             }
           }
@@ -302,8 +308,9 @@ export class ServiceItemService {
 
                 //referenzierter Accounting-Type
                 let accountingType=priceDefAttr.price.accountingType;
+                let attrObj:SimpleProductAttrDefinition = {'name':usageAttr.attributeDef.attributeDef.name,'displayName':usageAttr.attributeDef.attributeDef.displayName,'attributeDefId': usageAttr.attributeDef.attributeDef.id};
 
-                let obj={'attribute':usageAttr.attributeDef.attributeDef,
+                let obj={'attribute':attrObj,
                 'accountingType':accountingType,
                 'usage':usageAttr.value,
                 'pricePerUnit':pricePerUnit,

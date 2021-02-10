@@ -73,6 +73,9 @@ export class ServicePriceComponent implements OnInit {
       forkJoin(defaultPrices,changePrices,usagePrices,freestylePrices).subscribe(([defaultPrices,changePrices,usagePrices,freestylePrices]) => {
           let filteredPrices = defaultPrices.filter(p => availableAccountingTypes.find(a=> a===p.accountingType.name));
           //add freestyle prices to default price
+          //kann man so machen, man kann aber auch alle preise separat auflisten, und dann alle aufsummieren. Alles ist moeglich
+          //Man kann alle Preise mit der selben Abrechnungsperiode addieren (alle monatlichen/jaehrlichen), und die einmaligen einzeln auflisten
+          //console.log(freestylePrices);
           for (var price of filteredPrices ){
             //lookup the accounting type in the list of freestyleprices
             let freestylePricesForAccountingType=freestylePrices.filter(fsprice => fsprice.accountingType.name == price.accountingType.name);

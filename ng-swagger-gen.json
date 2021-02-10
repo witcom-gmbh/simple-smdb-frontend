@@ -14,7 +14,8 @@
   "ProductAttribute_V1",
   "AutomatedScripting_V1",
   "ProductCatalog_V1",
-  "PrimaryAttribute_V1"
+  "PrimaryAttribute_V1",
+  "AccountingType_V1"
   ],
   "ignoreUnusedModels": false,
   "minParamsForContainer": 2,
